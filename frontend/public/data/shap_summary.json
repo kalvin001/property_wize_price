@@ -1,0 +1,122 @@
+[
+  {
+    "feature": "land_value",
+    "mean_abs_shap": 662106.875,
+    "min_shap": -781970.8125,
+    "max_shap": 4875747.5
+  },
+  {
+    "feature": "sector_median",
+    "mean_abs_shap": 139043.28125,
+    "min_shap": -237745.1875,
+    "max_shap": 553991.5
+  },
+  {
+    "feature": "luxury_level_score",
+    "mean_abs_shap": 73263.2421875,
+    "min_shap": -345272.9375,
+    "max_shap": 299753.5625
+  },
+  {
+    "feature": "prop_x",
+    "mean_abs_shap": 72734.84375,
+    "min_shap": -442124.25,
+    "max_shap": 291770.8125
+  },
+  {
+    "feature": "sold_contract_date",
+    "mean_abs_shap": 69063.890625,
+    "min_shap": -221938.921875,
+    "max_shap": 222573.609375
+  },
+  {
+    "feature": "internal_area",
+    "mean_abs_shap": 67527.3984375,
+    "min_shap": -335870.96875,
+    "max_shap": 299280.75
+  },
+  {
+    "feature": "prop_bath",
+    "mean_abs_shap": 44385.28125,
+    "min_shap": -90461.8125,
+    "max_shap": 283486.53125
+  },
+  {
+    "feature": "mainbuilding_bedrooms_area",
+    "mean_abs_shap": 38072.8359375,
+    "min_shap": -114191.3515625,
+    "max_shap": 182564.15625
+  },
+  {
+    "feature": "locality_post",
+    "mean_abs_shap": 35672.4765625,
+    "min_shap": -154496.75,
+    "max_shap": 222249.453125
+  },
+  {
+    "feature": "garage_area",
+    "mean_abs_shap": 31317.841796875,
+    "min_shap": -128392.7578125,
+    "max_shap": 114576.4765625
+  },
+  {
+    "feature": "outdoor_swimming_pool_cnt",
+    "mean_abs_shap": 22749.7734375,
+    "min_shap": -38565.78515625,
+    "max_shap": 115750.8515625
+  },
+  {
+    "feature": "sector_code",
+    "mean_abs_shap": 18771.720703125,
+    "min_shap": -78581.9296875,
+    "max_shap": 100100.8203125
+  },
+  {
+    "feature": "region",
+    "mean_abs_shap": 17603.0078125,
+    "min_shap": -28486.83984375,
+    "max_shap": 126804.8046875
+  },
+  {
+    "feature": "view_quality",
+    "mean_abs_shap": 12719.2685546875,
+    "min_shap": -89072.0859375,
+    "max_shap": 91512.3359375
+  },
+  {
+    "feature": "prop_bed",
+    "mean_abs_shap": 11930.5927734375,
+    "min_shap": -47760.7734375,
+    "max_shap": 25654.193359375
+  },
+  {
+    "feature": "main_building_bedroom_avg_area",
+    "mean_abs_shap": 10960.6650390625,
+    "min_shap": -47563.3203125,
+    "max_shap": 82232.8125
+  },
+  {
+    "feature": "each_bedroom_area",
+    "mean_abs_shap": 10924.5302734375,
+    "min_shap": -28084.728515625,
+    "max_shap": 39768.40234375
+  },
+  {
+    "feature": "development_opportunity",
+    "mean_abs_shap": 9983.3828125,
+    "min_shap": -83319.1953125,
+    "max_shap": 65783.921875
+  },
+  {
+    "feature": "living_space_area",
+    "mean_abs_shap": 9960.16015625,
+    "min_shap": -31787.185546875,
+    "max_shap": 39066.80859375
+  },
+  {
+    "feature": "luxury_level_desc_score",
+    "mean_abs_shap": 9726.6455078125,
+    "min_shap": -43273.109375,
+    "max_shap": 24380.337890625
+  }
+]

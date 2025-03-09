@@ -1,0 +1,82 @@
+[
+  {
+    "feature": "land_value",
+    "importance": 0.3210107982158661
+  },
+  {
+    "feature": "sector_median",
+    "importance": 0.0519462414085865
+  },
+  {
+    "feature": "luxury_level_score",
+    "importance": 0.04500896483659744
+  },
+  {
+    "feature": "prop_bath",
+    "importance": 0.030906472355127335
+  },
+  {
+    "feature": "internal_area",
+    "importance": 0.030301833525300026
+  },
+  {
+    "feature": "view_quality",
+    "importance": 0.021359728649258614
+  },
+  {
+    "feature": "da_cdc_approval",
+    "importance": 0.017781995236873627
+  },
+  {
+    "feature": "separate_garage_cnt",
+    "importance": 0.014203491620719433
+  },
+  {
+    "feature": "living_space_area",
+    "importance": 0.013959051109850407
+  },
+  {
+    "feature": "sector_code",
+    "importance": 0.013919559307396412
+  },
+  {
+    "feature": "construction_year_guess",
+    "importance": 0.012353263795375824
+  },
+  {
+    "feature": "levels_cnt",
+    "importance": 0.011802737601101398
+  },
+  {
+    "feature": "prop_x",
+    "importance": 0.011535411700606346
+  },
+  {
+    "feature": "indoor_spa_cnt",
+    "importance": 0.011292188428342342
+  },
+  {
+    "feature": "locality_post",
+    "importance": 0.011196861043572426
+  },
+  {
+    "feature": "luxury_level_desc_score",
+    "importance": 0.010553847998380661
+  },
+  {
+    "feature": "prop_bed",
+    "importance": 0.010379616171121597
+  },
+  {
+    "feature": "mainbuilding_bedrooms_area",
+    "importance": 0.010143889114260674
+  },
+  {
+    "feature": "famous_designer",
+    "importance": 0.009242793545126915
+  },
+  {
+    "feature": "main_building_bedroom_avg_area",
+    "importance": 0.009013175033032894
+  }
+]

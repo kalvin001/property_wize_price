@@ -1,0 +1,101 @@
+.layout {
+  min-height: 100vh;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  padding: 0 20px;
+}
+
+.logo {
+  width: 32px;
+  height: 32px;
+  background: rgba(255, 255, 255, 0.2);
+  margin-right: 16px;
+  border-radius: 6px;
+}
+
+.site-title {
+  color: white !important;
+  margin: 0 !important;
+}
+
+.content {
+  padding: 24px;
+  min-height: calc(100vh - 134px);
+  background: #f0f2f5;
+}
+
+.loading-container {
+  text-align: center;
+  padding: 60px 20px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  margin: 20px auto;
+  max-width: 800px;
+}
+
+.content-container {
+  padding: 0;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.footer {
+  text-align: center;
+  padding: 24px 50px;
+}
+
+/* 主页面样式 */
+.main-tabs {
+  padding: 0 16px;
+}
+
+.overview-container, 
+.feature-importance-container,
+.sample-properties-container {
+  padding: 16px;
+}
+
+.overview-card, 
+.metrics-card, 
+.feature-importance-card,
+.property-card {
+  margin-bottom: 16px;
+}
+
+.metric-description {
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.45);
+  margin-top: 8px;
+}
+
+/* 特征表格样式 */
+.feature-table {
+  margin-top: 16px;
+}
+
+/* 房产样本分析样式 */
+.feature-impact {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+}
+
+.property-explanation {
+  background-color: #f9f9f9;
+  padding: 12px;
+  border-radius: 4px;
+  margin-top: 16px;
+} 
