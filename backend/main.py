@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
+from fastapi.responses import JSONResponse, FileResponse, Response
 from pydantic import BaseModel, field_validator
 from typing import List, Dict, Any, Optional, Callable, Type, TypeVar
 import os
@@ -11,6 +11,15 @@ from pathlib import Path
 import json
 from pydantic_core import core_schema
 from pydantic.json import pydantic_encoder
+import io
+from reportlab.lib.pagesizes import letter, A4
+from reportlab.lib import colors
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image as RLImage
+from reportlab.lib.units import inch
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
+import platform
 
 # 添加自定义JSON编码器处理NumPy类型
 class NumpyEncoder(json.JSONEncoder):
@@ -199,6 +208,7 @@ async def startup_event():
         
         if model_path.exists() and feature_cols_path.exists():
             MODEL = joblib.load(model_path)
+            print(f"模型已加载 : {MODEL}")
             FEATURE_COLS = joblib.load(feature_cols_path)
             print(f"模型已加载，特征数量: {len(FEATURE_COLS)}")
             
@@ -235,7 +245,12 @@ async def health_check():
 async def model_info():
     """获取模型信息"""
     if MODEL is None:
-        raise HTTPException(status_code=404, detail="模型尚未加载")
+        # 不抛出错误，而是返回模型未加载的信息
+        return {
+            "model_type": "XGBRegressor",
+            "model_loaded": False,
+            "detail": "模型尚未加载，请检查模型文件路径"
+        }
     
     try:
         # 尝试从公共数据目录加载模型指标
@@ -627,6 +642,451 @@ async def get_property_detail(prop_id: str):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"获取房产详情出错: {str(e)}")
 
+@app.get("/api/properties/{prop_id}/pdf")
+async def generate_property_pdf(prop_id: str):
+    """生成并返回指定房产的PDF报告"""
+    print(f"开始为房产 {prop_id} 生成PDF报告")
+    try:
+        # 检查全局数据是否已加载
+        if PROPERTIES_DF is None:
+            print("错误: 房产数据尚未加载")
+            raise HTTPException(status_code=500, detail="房产数据尚未加载")
+            
+        # 从数据中获取房产详情
+        print(f"正在查找房产ID: {prop_id}")
+        property_data = PROPERTIES_DF[PROPERTIES_DF["prop_id"].astype(str) == prop_id]
+        
+        if property_data.empty:
+            print(f"错误: 未找到房产ID {prop_id}")
+            raise HTTPException(status_code=404, detail="未找到该房产")
+        
+        print(f"已找到房产记录，开始获取详细信息")
+        # 获取完整的房产详情
+        try:
+            detail = await get_property_detail(prop_id)
+            print(f"成功获取房产详情: {detail.address}")
+        except Exception as e:
+            print(f"获取房产详情失败: {str(e)}")
+            raise HTTPException(status_code=500, detail=f"获取房产详情失败: {str(e)}")
+        
+        # 配置中文字体支持
+        print("配置中文字体支持")
+        # 在Windows中尝试使用系统字体
+        font_path = None
+        try:
+            if platform.system() == 'Windows':
+                # 尝试常见的系统字体路径
+                possible_fonts = [
+                    "C:/Windows/Fonts/simhei.ttf",  # 黑体
+                    "C:/Windows/Fonts/simsun.ttc",  # 宋体
+                    "C:/Windows/Fonts/msyh.ttc",    # 微软雅黑
+                    "C:/Windows/Fonts/simfang.ttf", # 仿宋
+                    "C:/Windows/Fonts/arial.ttf",   # Arial (作为后备)
+                ]
+                for path in possible_fonts:
+                    if os.path.exists(path):
+                        font_path = path
+                        print(f"找到字体: {path}")
+                        break
+                
+                if font_path is None:
+                    print("警告: 未找到任何中文字体，将使用默认字体")
+        except Exception as e:
+            print(f"字体检测过程出错: {str(e)}")
+        
+        # 注册字体
+        chinese_font_name = 'Helvetica'  # 默认字体
+        try:
+            if font_path:
+                font_name = os.path.basename(font_path).split('.')[0]
+                try:
+                    pdfmetrics.registerFont(TTFont(font_name, font_path))
+                    chinese_font_name = font_name
+                    print(f"成功注册字体: {font_name}")
+                except Exception as font_error:
+                    print(f"字体注册失败: {str(font_error)}，将使用默认字体")
+        except Exception as e:
+            print(f"字体处理过程出错: {str(e)}")
+        
+        # 创建一个内存中的PDF文件
+        print("创建PDF文档")
+        buffer = io.BytesIO()
+        try:
+            doc = SimpleDocTemplate(buffer, pagesize=A4, topMargin=0.5*inch, bottomMargin=0.5*inch)
+            styles = getSampleStyleSheet()
+            
+            # 自定义中文标题和正文样式
+            title_style = ParagraphStyle(
+                'ChineseTitle',
+                parent=styles['Title'],
+                fontName=chinese_font_name
+            )
+            
+            heading2_style = ParagraphStyle(
+                'ChineseHeading2',
+                parent=styles['Heading2'],
+                fontName=chinese_font_name
+            )
+            
+            normal_style = ParagraphStyle(
+                'ChineseNormal',
+                parent=styles['Normal'],
+                fontName=chinese_font_name
+            )
+            
+            elements = []
+            
+            print("添加PDF内容: 标题")
+            # 添加标题
+            try:
+                title_text = f"房产估价报告: {detail.address}"
+                elements.append(Paragraph(title_text, title_style))
+                elements.append(Spacer(1, 0.25*inch))
+            except Exception as e:
+                print(f"添加标题时出错: {str(e)}")
+                # 使用简单标题作为后备
+                elements.append(Paragraph("房产估价报告", title_style))
+                elements.append(Spacer(1, 0.25*inch))
+            
+            print("添加PDF内容: 基本信息")
+            # 添加基本信息
+            elements.append(Paragraph("基本信息", heading2_style))
+            elements.append(Spacer(1, 0.1*inch))
+            
+            # 创建基本信息表格数据
+            try:
+                basic_data = [
+                    ["属性", "值"],
+                    ["房产ID", str(detail.prop_id)],
+                    ["地址", str(detail.address)],
+                    ["预测价格", f"¥{detail.predicted_price:,.2f}"],
+                ]
+                
+                # 添加特征值到表格
+                for key, value in detail.features.items():
+                    if key not in ["prop_id", "address"]:
+                        # 格式化特征名称和值
+                        formatted_key = str(key).replace("_", " ").title()
+                        if isinstance(value, (int, float)) and key != "predicted_price":
+                            formatted_value = f"{value:,.2f}" if '.' in str(value) else f"{value:,}"
+                        else:
+                            formatted_value = str(value)
+                        basic_data.append([formatted_key, formatted_value])
+            except Exception as e:
+                print(f"准备基本信息数据时出错: {str(e)}")
+                # 使用简单的基本数据作为后备
+                basic_data = [
+                    ["属性", "值"],
+                    ["房产ID", str(detail.prop_id)],
+                    ["地址", str(detail.address)],
+                ]
+            
+            # 将表格数据转换为Paragraph对象以支持中文
+            print("格式化表格数据")
+            try:
+                styled_basic_data = []
+                for row in basic_data:
+                    styled_row = []
+                    for cell in row:
+                        try:
+                            styled_row.append(Paragraph(str(cell), normal_style))
+                        except Exception as cell_error:
+                            print(f"处理单元格数据时出错: {cell} - {str(cell_error)}")
+                            styled_row.append(Paragraph("数据错误", normal_style))
+                    styled_basic_data.append(styled_row)
+                
+                # 创建并设置表格样式
+                basic_table = Table(styled_basic_data, colWidths=[2.5*inch, 3*inch])
+                basic_table.setStyle(TableStyle([
+                    ('BACKGROUND', (0, 0), (1, 0), colors.gray),
+                    ('TEXTCOLOR', (0, 0), (1, 0), colors.whitesmoke),
+                    ('ALIGN', (0, 0), (1, 0), 'CENTER'),
+                    ('BOTTOMPADDING', (0, 0), (1, 0), 12),
+                    ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                    ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                ]))
+                
+                elements.append(basic_table)
+                elements.append(Spacer(1, 0.25*inch))
+            except Exception as e:
+                print(f"创建基本信息表格时出错: {str(e)}")
+                # 跳过表格，添加简单文本
+                elements.append(Paragraph("基本信息无法显示", normal_style))
+                elements.append(Spacer(1, 0.25*inch))
+            
+            # 添加特征影响部分
+            if detail.feature_importance and len(detail.feature_importance) > 0:
+                print("添加PDF内容: 特征影响因素")
+                try:
+                    elements.append(Paragraph("特征影响因素", heading2_style))
+                    elements.append(Spacer(1, 0.1*inch))
+                    
+                    feature_data = [["特征", "影响值", "影响百分比"]]
+                    for feature in detail.feature_importance[:10]:  # 仅显示前10个特征
+                        feature_data.append([
+                            str(feature.get("name", "")).replace("_", " ").title(),
+                            f"{feature.get('value', 0):,.2f}",
+                            f"{feature.get('percentage', 0):.2f}%"
+                        ])
+                    
+                    # 将表格数据转换为Paragraph对象以支持中文
+                    styled_feature_data = []
+                    for row in feature_data:
+                        styled_row = []
+                        for cell in row:
+                            styled_row.append(Paragraph(str(cell), normal_style))
+                        styled_feature_data.append(styled_row)
+                    
+                    feature_table = Table(styled_feature_data, colWidths=[2*inch, 1.5*inch, 1.5*inch])
+                    feature_table.setStyle(TableStyle([
+                        ('BACKGROUND', (0, 0), (2, 0), colors.gray),
+                        ('TEXTCOLOR', (0, 0), (2, 0), colors.whitesmoke),
+                        ('ALIGN', (0, 0), (2, 0), 'CENTER'),
+                        ('BOTTOMPADDING', (0, 0), (2, 0), 12),
+                        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                    ]))
+                    
+                    elements.append(feature_table)
+                    elements.append(Spacer(1, 0.25*inch))
+                except Exception as e:
+                    print(f"添加特征影响部分时出错: {str(e)}")
+            
+            # 添加可比较房产信息
+            if detail.comparable_properties and len(detail.comparable_properties) > 0:
+                print("添加PDF内容: 可比较房产")
+                try:
+                    elements.append(Paragraph("可比较房产", heading2_style))
+                    elements.append(Spacer(1, 0.1*inch))
+                    
+                    comp_data = [["地址", "价格", "差异"]]
+                    for comp in detail.comparable_properties[:5]:  # 仅显示前5个可比较房产
+                        comp_data.append([
+                            str(comp.get("address", "")),
+                            f"¥{comp.get('price', 0):,.2f}",
+                            f"{comp.get('price_diff_percent', 0):.2f}%"
+                        ])
+                    
+                    # 将表格数据转换为Paragraph对象以支持中文
+                    styled_comp_data = []
+                    for row in comp_data:
+                        styled_row = []
+                        for cell in row:
+                            styled_row.append(Paragraph(str(cell), normal_style))
+                        styled_comp_data.append(styled_row)
+                    
+                    comp_table = Table(styled_comp_data, colWidths=[3*inch, 1.5*inch, 1*inch])
+                    comp_table.setStyle(TableStyle([
+                        ('BACKGROUND', (0, 0), (2, 0), colors.gray),
+                        ('TEXTCOLOR', (0, 0), (2, 0), colors.whitesmoke),
+                        ('ALIGN', (0, 0), (2, 0), 'CENTER'),
+                        ('BOTTOMPADDING', (0, 0), (2, 0), 12),
+                        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                    ]))
+                    
+                    elements.append(comp_table)
+                    elements.append(Spacer(1, 0.25*inch))
+                except Exception as e:
+                    print(f"添加可比较房产部分时出错: {str(e)}")
+            
+            # 添加价格区间信息
+            if detail.price_range:
+                print("添加PDF内容: 价格区间")
+                try:
+                    elements.append(Paragraph("价格区间", heading2_style))
+                    elements.append(Spacer(1, 0.1*inch))
+                    
+                    price_range_data = [
+                        ["最低价格", "预测价格", "最高价格"],
+                        [
+                            f"¥{detail.price_range.get('min', 0):,.2f}",
+                            f"¥{detail.predicted_price:,.2f}",
+                            f"¥{detail.price_range.get('max', 0):,.2f}"
+                        ]
+                    ]
+                    
+                    # 将表格数据转换为Paragraph对象以支持中文
+                    styled_price_range_data = []
+                    for row in price_range_data:
+                        styled_row = []
+                        for cell in row:
+                            styled_row.append(Paragraph(str(cell), normal_style))
+                        styled_price_range_data.append(styled_row)
+                    
+                    price_range_table = Table(styled_price_range_data, colWidths=[2*inch, 2*inch, 2*inch])
+                    price_range_table.setStyle(TableStyle([
+                        ('BACKGROUND', (0, 0), (2, 0), colors.gray),
+                        ('TEXTCOLOR', (0, 0), (2, 0), colors.whitesmoke),
+                        ('ALIGN', (0, 0), (2, 0), 'CENTER'),
+                        ('BOTTOMPADDING', (0, 0), (2, 0), 12),
+                        ('BACKGROUND', (0, 1), (-1, -1), colors.beige),
+                        ('GRID', (0, 0), (-1, -1), 1, colors.black),
+                        ('ALIGN', (0, 1), (2, 1), 'CENTER'),
+                    ]))
+                    
+                    elements.append(price_range_table)
+                    elements.append(Spacer(1, 0.25*inch))
+                except Exception as e:
+                    print(f"添加价格区间部分时出错: {str(e)}")
+            
+            # 添加报告生成时间
+            print("添加PDF内容: 生成时间")
+            try:
+                from datetime import datetime
+                now = datetime.now()
+                date_style = ParagraphStyle(
+                    "ChineseDateStyle", 
+                    parent=normal_style,
+                    alignment=1  # 1 = center
+                )
+                elements.append(Paragraph(f"报告生成时间: {now.strftime('%Y-%m-%d %H:%M:%S')}", date_style))
+            except Exception as e:
+                print(f"添加生成时间时出错: {str(e)}")
+            
+            # 构建PDF文档
+            print("构建PDF文档")
+            doc.build(elements)
+            buffer.seek(0)
+            
+            # 获取PDF内容
+            pdf_content = buffer.getvalue()
+            
+            # 设置文件名
+            filename = f"property_report_{prop_id}.pdf"
+            
+            print(f"PDF生成成功，大小: {len(pdf_content)} 字节")
+            
+            # 创建Response对象
+            response = Response(
+                content=pdf_content,
+                media_type="application/pdf",
+                headers={"Content-Disposition": f"attachment; filename={filename}"}
+            )
+            
+            return response
+        except Exception as e:
+            print(f"PDF生成过程中出错: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            raise HTTPException(status_code=500, detail=f"PDF生成过程中出错: {str(e)}")
+            
+    except HTTPException as he:
+        # 重新抛出HTTP异常
+        raise he
+    except Exception as e:
+        print(f"生成PDF报告时出现未预期错误: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"生成PDF报告时出错: {str(e)}")
+
+# 添加一个简化版的PDF生成API端点
+@app.get("/api/properties/{prop_id}/pdf-simple")
+async def generate_simple_property_pdf(prop_id: str):
+    """生成并返回指定房产的简化PDF报告"""
+    print(f"开始为房产 {prop_id} 生成简化PDF报告")
+    try:
+        # 检查全局数据是否已加载
+        if PROPERTIES_DF is None:
+            print("错误: 房产数据尚未加载")
+            raise HTTPException(status_code=500, detail="房产数据尚未加载")
+            
+        # 从数据中获取房产详情
+        print(f"正在查找房产ID: {prop_id}")
+        property_data = PROPERTIES_DF[PROPERTIES_DF["prop_id"].astype(str) == prop_id]
+        
+        if property_data.empty:
+            print(f"错误: 未找到房产ID {prop_id}")
+            raise HTTPException(status_code=404, detail="未找到该房产")
+        
+        # 不使用get_property_detail函数，直接从数据中获取基本信息
+        row = property_data.iloc[0]
+        address = str(row.get('address', '未知地址'))
+        
+        # 使用简单的reportlab创建PDF
+        buffer = io.BytesIO()
+        
+        # 创建一个简单的PDF文档，避免复杂的格式和字体问题
+        from reportlab.pdfgen import canvas
+        
+        # 设置页面大小为A4
+        c = canvas.Canvas(buffer, pagesize=A4)
+        
+        # 添加标题
+        title = "房产估价报告"
+        c.setFont("Helvetica-Bold", 18)
+        c.drawCentredString(A4[0]/2, A4[1] - 50, title)
+        
+        # 添加房产ID和地址
+        c.setFont("Helvetica", 12)
+        c.drawString(50, A4[1] - 100, f"房产ID: {prop_id}")
+        c.drawString(50, A4[1] - 120, f"地址: {address}")
+        
+        # 添加预测价格（如果有）
+        predicted_price = row.get('predicted_price', 0)
+        if isinstance(predicted_price, (int, float)):
+            price_str = f"¥{predicted_price:,.2f}"
+        else:
+            price_str = str(predicted_price)
+        c.drawString(50, A4[1] - 140, f"预测价格: {price_str}")
+        
+        # 添加主要特征
+        y_pos = A4[1] - 180
+        c.drawString(50, y_pos, "主要特征:")
+        y_pos -= 20
+        
+        feature_count = 0
+        for col in property_data.columns:
+            if col not in ['prop_id', 'address', 'predicted_price'] and feature_count < 10:
+                try:
+                    value = row[col]
+                    if pd.notna(value):  # 只显示非空值
+                        if isinstance(value, (int, float)):
+                            value_str = f"{value:,.2f}" if '.' in str(value) else f"{value:,}"
+                        else:
+                            value_str = str(value)
+                        
+                        feature_name = col.replace('_', ' ').title()
+                        c.drawString(70, y_pos, f"{feature_name}: {value_str}")
+                        y_pos -= 15
+                        feature_count += 1
+                except Exception as e:
+                    print(f"处理特征 {col} 时出错: {str(e)}")
+        
+        # 添加生成时间
+        from datetime import datetime
+        now = datetime.now()
+        date_str = now.strftime('%Y-%m-%d %H:%M:%S')
+        c.setFont("Helvetica-Italic", 10)
+        c.drawString(50, 50, f"报告生成时间: {date_str}")
+        
+        # 保存PDF
+        c.save()
+        buffer.seek(0)
+        
+        # 获取PDF内容
+        pdf_content = buffer.getvalue()
+        
+        # 设置文件名
+        filename = f"property_report_simple_{prop_id}.pdf"
+        
+        print(f"简化PDF生成成功，大小: {len(pdf_content)} 字节")
+        
+        # 创建Response对象
+        response = Response(
+            content=pdf_content,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+        
+        return response
+        
+    except Exception as e:
+        print(f"生成简化PDF报告时出错: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"生成简化PDF报告时出错: {str(e)}")
+
 # Vercel部署支持
 from mangum import Mangum
 handler = Mangum(app)
@@ -634,6 +1094,6 @@ handler = Mangum(app)
 if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
-    uvicorn.run("main:app", host="127.0.0.1", port=port, reload=True) 
+    uvicorn.run("main:app", host="127.0.0.1", port=port, reload=False)  # 设置reload=False
 ##
 #python main.py

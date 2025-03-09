@@ -295,6 +295,81 @@ export default function PropertyDetail() {
     },
   ];
 
+  const exportToPdf = () => {
+    if (!id) return;
+    
+    // 显示加载通知并获取通知关闭方法
+    const notificationKey = 'pdfLoading';
+    notification.open({
+      key: notificationKey,
+      message: '正在生成PDF报告',
+      description: '请稍等，正在为您生成报告...',
+      duration: 0,
+      icon: <ClockCircleOutlined style={{ color: '#108ee9' }} />,
+    });
+    
+    // 设置下载链接 - 使用简化版端点
+    const downloadLink = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/properties/${id}/pdf-simple`;
+    
+    // 打印调试信息
+    console.log('正在请求PDF下载链接:', downloadLink);
+    
+    // 使用fetch API下载PDF
+    fetch(downloadLink)
+      .then(response => {
+        console.log('PDF API响应状态:', response.status);
+        
+        if (!response.ok) {
+          if (response.status === 404) {
+            throw new Error('未找到该房产数据');
+          } else if (response.status === 500) {
+            throw new Error('服务器生成PDF时遇到错误');
+          } else {
+            throw new Error(`PDF生成失败 (${response.status})`);
+          }
+        }
+        return response.blob();
+      })
+      .then(blob => {
+        console.log('成功获取PDF，大小:', blob.size, '字节');
+        
+        // 创建一个下载链接
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', `房产估价报告_${id}.pdf`);
+        
+        // 添加到DOM并触发点击
+        document.body.appendChild(link);
+        link.click();
+        
+        // 清理
+        setTimeout(() => {
+          window.URL.revokeObjectURL(url);
+          document.body.removeChild(link);
+        }, 100);
+        
+        // 显示成功通知
+        notification.destroy(notificationKey);
+        notification.success({
+          message: 'PDF生成完成',
+          description: '报告已成功下载',
+          duration: 3,
+        });
+      })
+      .catch(error => {
+        console.error('下载PDF出错:', error);
+        
+        // 显示错误通知
+        notification.destroy(notificationKey);
+        notification.error({
+          message: 'PDF生成失败',
+          description: error.message || '无法生成PDF报告，请稍后重试',
+          duration: 4,
+        });
+      });
+  };
+
   if (loading) {
     return (
       <Layout className="layout">
@@ -479,7 +554,7 @@ export default function PropertyDetail() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
             <Title level={2}>{property.address}</Title>
             <Space>
-              <Button type="primary" icon={<ExportOutlined />}>导出PDF报告</Button>
+              <Button type="primary" icon={<ExportOutlined />} onClick={exportToPdf}>导出PDF报告</Button>
               <Button type="default" icon={<ArrowLeftOutlined />}>
                 <Link href="/property-reports">返回列表</Link>
               </Button>

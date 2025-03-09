@@ -291,6 +291,6 @@ if __name__ == '__main__':
     #单个测试
     suite = unittest.TestSuite()
     #测试可比房产
-    suite.addTest(TestPriceAnalysis('test_find_comparable_properties'))
+    suite.addTest(TestPriceAnalysis('test_predict_property_price'))
     unittest.TextTestRunner().run(suite)
     #unittest.main(defaultTest='backend.test_price_analysis.TestPriceAnalysis.test_predict_property_price')
