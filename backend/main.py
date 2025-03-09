@@ -210,8 +210,26 @@ async def predict_price(property_data: PropertyFeatures):
                 except:
                     # 如果无法转换为数值，将其转换为分类型
                     features_df[col] = features_df[col].astype('category')
+            # 处理日期类型
+            elif pd.api.types.is_datetime64_any_dtype(features_df[col]):
+                print(f"属性列表预测时检测到日期类型列: {col}，将转换为数值")
+                # 将日期转换为时间戳（从1970-01-01起的天数）
+                features_df[col] = (features_df[col] - pd.Timestamp("1970-01-01")) // pd.Timedelta("1 day")
         
-        # 预测价格
+        # 再次检查所有列的类型
+        cols_to_drop = []
+        for col in features_df.columns:
+            if not (pd.api.types.is_numeric_dtype(features_df[col]) or 
+                    pd.api.types.is_bool_dtype(features_df[col]) or 
+                    pd.api.types.is_categorical_dtype(features_df[col])):
+                print(f"警告: 属性列表预测前列 {col} 类型 {features_df[col].dtype} 不被模型支持，将移除")
+                cols_to_drop.append(col)
+        
+        # 移除不支持的列
+        if cols_to_drop:
+            features_df = features_df.drop(columns=cols_to_drop)
+        
+        # 使用模型预测
         predicted_price = float(MODEL.predict(features_df)[0])
         
         # 计算特征重要性
@@ -300,6 +318,24 @@ async def get_properties(
                             except:
                                 # 如果无法转换为数值，将其转换为分类型
                                 features_df[col] = features_df[col].astype('category')
+                        # 处理日期类型
+                        elif pd.api.types.is_datetime64_any_dtype(features_df[col]):
+                            print(f"属性列表预测时检测到日期类型列: {col}，将转换为数值")
+                            # 将日期转换为时间戳（从1970-01-01起的天数）
+                            features_df[col] = (features_df[col] - pd.Timestamp("1970-01-01")) // pd.Timedelta("1 day")
+                    
+                    # 再次检查所有列的类型
+                    cols_to_drop = []
+                    for col in features_df.columns:
+                        if not (pd.api.types.is_numeric_dtype(features_df[col]) or 
+                                pd.api.types.is_bool_dtype(features_df[col]) or 
+                                pd.api.types.is_categorical_dtype(features_df[col])):
+                            print(f"警告: 属性列表预测前列 {col} 类型 {features_df[col].dtype} 不被模型支持，将移除")
+                            cols_to_drop.append(col)
+                    
+                    # 移除不支持的列
+                    if cols_to_drop:
+                        features_df = features_df.drop(columns=cols_to_drop)
                     
                     # 使用模型预测
                     pred_price = float(MODEL.predict(features_df)[0])

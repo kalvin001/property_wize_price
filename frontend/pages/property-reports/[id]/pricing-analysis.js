@@ -13,7 +13,8 @@ import {
   Spin,
   Result,
   Space,
-  Tabs
+  Tabs,
+  Alert
 } from 'antd';
 import { 
   HomeOutlined, 
@@ -322,7 +323,7 @@ export default function PropertyPricingAnalysis() {
           <Row>
             <Col xs={24}>
               <Tabs
-                defaultActiveKey="1"
+                defaultActiveKey="3"
                 size="large"
                 items={[
                   {
@@ -378,8 +379,20 @@ export default function PropertyPricingAnalysis() {
                     label: <span><EnvironmentOutlined /> 区域分析</span>,
                     children: (
                       <>
-                        <PropertyNeighborhoodStats neighborhoodStats={property.neighborhood_stats} />
-                        <PropertyComparables comparableProperties={property.comparable_properties} />
+                        {/* 添加一个条件检查和消息提示 */}
+                        {property.neighborhood_stats ? (
+                          <>
+                            <PropertyNeighborhoodStats neighborhoodStats={property.neighborhood_stats} />
+                            <PropertyComparables comparableProperties={property.comparable_properties} />
+                          </>
+                        ) : (
+                          <Alert
+                            message="周边区域数据未加载"
+                            description="无法获取周边区域统计数据，请检查后端API或刷新页面重试。"
+                            type="warning"
+                            showIcon
+                          />
+                        )}
                       </>
                     ),
                   },

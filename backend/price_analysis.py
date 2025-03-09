@@ -52,6 +52,27 @@ def predict_property_price(
                             print(f"转换特征 {col} 失败: {e}")
                             # 如果无法转换为数值，将其转换为分类型
                             input_df[col] = input_df[col].astype('category')
+                    # 检查并处理日期类型的列
+                    elif pd.api.types.is_datetime64_any_dtype(input_df[col]):
+                        print(f"检测到日期类型列: {col}，将转换为数值特征")
+                        # 将日期转换为时间戳（从1970-01-01起的天数）
+                        input_df[col] = (input_df[col] - pd.Timestamp("1970-01-01")) // pd.Timedelta("1 day")
+                
+                # 再次检查确保所有列都是模型支持的类型
+                for col in input_df.columns:
+                    if not (pd.api.types.is_numeric_dtype(input_df[col]) or 
+                            pd.api.types.is_bool_dtype(input_df[col]) or 
+                            pd.api.types.is_categorical_dtype(input_df[col])):
+                        print(f"警告: 列 {col} 的类型 {input_df[col].dtype} 不被模型支持，将转换为数值")
+                        try:
+                            input_df[col] = pd.to_numeric(input_df[col], errors='coerce').fillna(0)
+                        except:
+                            # 如果转换失败，则移除此列
+                            print(f"无法转换列 {col}，将其从特征中移除")
+                            input_df = input_df.drop(columns=[col])
+                            # 如果这是必要特征，则更新feature_cols
+                            if col in feature_cols:
+                                feature_cols.remove(col)
                 
                 # 提取特征值用于SHAP计算
                 feature_dict = {}
@@ -684,40 +705,50 @@ def get_neighborhood_stats(
                 # 计算价格趋势
                 # 简化: 通过比较最近两次半年的平均价格来确定趋势
                 # 实际应用中可能需要更复杂的时间序列分析
-                if 'updated_date' in properties_df.columns:
-                    # 将日期列转换为日期类型
-                    properties_df['updated_date'] = pd.to_datetime(properties_df['updated_date'], errors='coerce')
-                    
-                    # 排除缺失日期的记录
-                    dated_props = properties_df[properties_df['updated_date'].notna()]
-                    
-                    if len(dated_props) > 0:
-                        # 找出最近日期
-                        latest_date = dated_props['updated_date'].max()
-                        
-                        # 计算半年前的日期
-                        six_months_ago = latest_date - pd.DateOffset(months=6)
-                        one_year_ago = latest_date - pd.DateOffset(months=12)
-                        
-                        # 分组计算平均价格
-                        recent_price = dated_props[
-                            (dated_props['updated_date'] > six_months_ago) & 
-                            (dated_props['updated_date'] <= latest_date)
-                        ]['y_label'].mean()
-                        
-                        previous_price = dated_props[
-                            (dated_props['updated_date'] > one_year_ago) & 
-                            (dated_props['updated_date'] <= six_months_ago)
-                        ]['y_label'].mean()
-                        
-                        # 确定价格趋势
-                        if not np.isnan(recent_price) and not np.isnan(previous_price):
-                            if recent_price > previous_price * 1.05:  # 上涨超过5%
-                                stats["price_trend"] = "上升"
-                            elif recent_price < previous_price * 0.95:  # 下跌超过5%
-                                stats["price_trend"] = "下降"
-                            else:
-                                stats["price_trend"] = "稳定"
+                try:
+                    if 'updated_date' in properties_df.columns:
+                        # 安全地将日期列转换为日期类型
+                        try:
+                            # 创建副本避免直接修改原始数据
+                            trend_df = properties_df.copy()
+                            trend_df['updated_date'] = pd.to_datetime(trend_df['updated_date'], errors='coerce')
+                            
+                            # 排除缺失日期的记录
+                            dated_props = trend_df[trend_df['updated_date'].notna()]
+                            
+                            if len(dated_props) > 0:
+                                # 找出最近日期
+                                latest_date = dated_props['updated_date'].max()
+                                
+                                # 计算半年前的日期
+                                six_months_ago = latest_date - pd.DateOffset(months=6)
+                                one_year_ago = latest_date - pd.DateOffset(months=12)
+                                
+                                # 分组计算平均价格
+                                recent_price = dated_props[
+                                    (dated_props['updated_date'] > six_months_ago) & 
+                                    (dated_props['updated_date'] <= latest_date)
+                                ]['y_label'].mean()
+                                
+                                previous_price = dated_props[
+                                    (dated_props['updated_date'] > one_year_ago) & 
+                                    (dated_props['updated_date'] <= six_months_ago)
+                                ]['y_label'].mean()
+                                
+                                # 确定价格趋势
+                                if not np.isnan(recent_price) and not np.isnan(previous_price):
+                                    if recent_price > previous_price * 1.05:  # 上涨超过5%
+                                        stats["price_trend"] = "上升"
+                                    elif recent_price < previous_price * 0.95:  # 下跌超过5%
+                                        stats["price_trend"] = "下降"
+                                    else:
+                                        stats["price_trend"] = "稳定"
+                        except Exception as e:
+                            print(f"计算价格趋势出错: {e}")
+                            # 出错时默认为稳定
+                            stats["price_trend"] = "稳定"
+                except Exception as e:
+                    print(f"处理价格趋势时出错: {e}")
             
             except Exception as e:
                 print(f"计算周边区域统计出错: {e}")
