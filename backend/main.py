@@ -11,6 +11,7 @@ from pathlib import Path
 import json
 from pydantic_core import core_schema
 from pydantic.json import pydantic_encoder
+import inspect
 
 # 添加自定义JSON编码器处理NumPy类型
 class NumpyEncoder(json.JSONEncoder):
@@ -33,23 +34,40 @@ def numpy_serializer(obj):
         return obj.tolist()
     return pydantic_encoder(obj)  # 默认的Pydantic序列化
 
+# 更全面的NumPy类型转换函数
+def convert_numpy_types(obj):
+    """递归转换所有NumPy类型为Python原生类型"""
+    if obj is None:
+        return None
+    elif isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, (str, int, float, bool)):
+        return obj
+    elif isinstance(obj, dict):
+        return {k: convert_numpy_types(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_numpy_types(item) for item in obj]
+    elif isinstance(obj, tuple):
+        return tuple(convert_numpy_types(item) for item in obj)
+    elif pd.isna(obj):  # 处理pandas的NaN, NaT等特殊值
+        return None
+    elif hasattr(obj, '__dict__'):
+        # 处理自定义对象
+        return {k: convert_numpy_types(v) for k, v in obj.__dict__.items() 
+                if not k.startswith('_') and not inspect.ismethod(v)}
+    return obj
+
 # 创建一个自定义的BaseModel，自动处理NumPy数据类型
 class NumpyBaseModel(BaseModel):
     """扩展的基础模型，自动处理NumPy数据类型"""
     
     @classmethod
     def _convert_numpy_types(cls, v):
-        if isinstance(v, np.integer):
-            return int(v)
-        elif isinstance(v, np.floating):
-            return float(v)
-        elif isinstance(v, np.ndarray):
-            return v.tolist()
-        elif isinstance(v, dict):
-            return {k: cls._convert_numpy_types(val) for k, val in v.items()}
-        elif isinstance(v, list):
-            return [cls._convert_numpy_types(item) for item in v]
-        return v
+        return convert_numpy_types(v)
     
     @field_validator('*')
     @classmethod
@@ -65,6 +83,20 @@ class NumpyBaseModel(BaseModel):
         }
     }
 
+    # 重写model_dump方法以确保NumPy类型被正确处理
+    def model_dump(self, **kwargs):
+        data = super().model_dump(**kwargs)
+        return convert_numpy_types(data)
+
+    # 重写dict方法以确保NumPy类型被正确处理
+    def dict(self, **kwargs):
+        if hasattr(super(), 'dict'):
+            data = super().dict(**kwargs)
+            return convert_numpy_types(data)
+        else:  # 兼容Pydantic v2
+            data = self.model_dump(**kwargs)
+            return convert_numpy_types(data)
+
 app = FastAPI(title="房产估价API")
 
 # 配置应用JSON序列化
@@ -74,6 +106,10 @@ original_jsonable_encoder = fastapi.encoders.jsonable_encoder
 
 # 创建一个包装函数，处理NumPy类型
 def numpy_jsonable_encoder(obj, *args, **kwargs):
+    """确保所有NumPy类型都被转换为Python原生类型"""
+    # 预处理对象，转换NumPy类型
+    obj = convert_numpy_types(obj)
+    
     custom_encoder = kwargs.get('custom_encoder', {})
     # 添加NumPy类型处理
     numpy_encoders = {
@@ -89,6 +125,53 @@ def numpy_jsonable_encoder(obj, *args, **kwargs):
 
 # 替换编码器
 fastapi.encoders.jsonable_encoder = numpy_jsonable_encoder
+
+# 直接覆盖Pydantic序列化函数
+import pydantic.json
+original_pydantic_encoder = pydantic.json.pydantic_encoder
+
+def patched_pydantic_encoder(obj, **kwargs):
+    """确保所有NumPy类型都被转换为Python原生类型"""
+    # 预处理对象，转换NumPy类型
+    obj = convert_numpy_types(obj)
+    # 调用原始编码器
+    return original_pydantic_encoder(obj, **kwargs)
+
+# 替换Pydantic编码器
+pydantic.json.pydantic_encoder = patched_pydantic_encoder
+
+# 直接修补fastapi.routing.serialize_response函数
+import fastapi.routing
+original_serialize_response = fastapi.routing.serialize_response
+
+async def patched_serialize_response(
+    field, response_content, include=None, exclude=None, by_alias=True, exclude_unset=False, **kwargs
+):
+    """确保所有FastAPI响应在序列化前都经过NumPy类型转换"""
+    # 预处理响应内容，转换NumPy类型
+    response_content = convert_numpy_types(response_content)
+    # 调用原始函数
+    return await original_serialize_response(
+        field, response_content, include, exclude, by_alias, exclude_unset, **kwargs
+    )
+
+# 替换序列化函数
+fastapi.routing.serialize_response = patched_serialize_response
+
+# 修补pandas.Series.__getitem__方法，确保返回Python原生类型
+original_series_getitem = pd.Series.__getitem__
+
+def patched_series_getitem(self, key):
+    value = original_series_getitem(self, key)
+    # 转换NumPy类型为Python原生类型
+    if isinstance(value, np.integer):
+        return int(value)
+    elif isinstance(value, np.floating):
+        return float(value)
+    return value
+
+# 应用补丁
+pd.Series.__getitem__ = patched_series_getitem
 
 # 配置CORS
 app.add_middleware(
@@ -113,26 +196,6 @@ class NumpyJSONResponse(JSONResponse):
 
 # 设置默认响应类
 app.json_response_class = NumpyJSONResponse
-
-# 添加辅助函数，用于在API返回前转换NumPy类型
-def convert_numpy_types(obj):
-    """递归转换所有NumPy类型为Python原生类型"""
-    if isinstance(obj, np.integer):
-        return int(obj)
-    elif isinstance(obj, np.floating):
-        return float(obj)
-    elif isinstance(obj, np.ndarray):
-        return obj.tolist()
-    elif isinstance(obj, dict):
-        return {k: convert_numpy_types(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [convert_numpy_types(item) for item in obj]
-    elif isinstance(obj, tuple):
-        return tuple(convert_numpy_types(item) for item in obj)
-    elif hasattr(obj, '__dict__'):
-        # 处理自定义对象
-        return {k: convert_numpy_types(v) for k, v in obj.__dict__.items()}
-    return obj
 
 # 数据模型
 class PropertyFeatures(NumpyBaseModel):
@@ -474,12 +537,15 @@ async def get_properties(
                 features=features
             ))
         
-        return PropertyListResponse(
+        response = PropertyListResponse(
             total=total,
             page=page,
             page_size=page_size,
             properties=convert_numpy_types(properties)
         )
+        
+        # 转换为字典并确保所有NumPy类型都被转换为Python原生类型
+        return convert_numpy_types(response.model_dump())
     
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"获取房产列表出错: {str(e)}")
@@ -601,7 +667,8 @@ async def get_property_detail(prop_id: str):
             if not property_detail.comparable_properties:
                 property_detail.comparable_properties = generate_dummy_comparables(row, prop_id)
                 
-            return convert_numpy_types(property_detail)
+            # 转换为字典并确保所有NumPy类型都被转换为Python原生类型
+            return convert_numpy_types(property_detail.model_dump())
             
         except Exception as e:
             print(f"创建PropertyDetail对象时出错: {e}")
@@ -620,7 +687,8 @@ async def get_property_detail(prop_id: str):
                 ai_explanation=get_model_explanation(pred_price, [], FEATURE_COLS if FEATURE_COLS else [])
             )
             
-            return convert_numpy_types(property_detail)
+            # 转换为字典并确保所有NumPy类型都被转换为Python原生类型
+            return convert_numpy_types(property_detail.model_dump())
     
     except HTTPException:
         raise

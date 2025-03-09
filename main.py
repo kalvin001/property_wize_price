@@ -182,4 +182,4 @@ nohup python3 backend/main.py &
 
 '''
 if __name__ == "__main__":
-    main() 
+    main()  #导出pdf功能不生效 
