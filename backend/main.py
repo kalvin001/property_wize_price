@@ -1,14 +1,16 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
-from typing import List, Dict, Any, Optional
+from pydantic import BaseModel, field_validator
+from typing import List, Dict, Any, Optional, Callable, Type, TypeVar
 import os
 import pandas as pd
 import numpy as np
 import joblib
 from pathlib import Path
 import json
+from pydantic_core import core_schema
+from pydantic.json import pydantic_encoder
 
 # 添加自定义JSON编码器处理NumPy类型
 class NumpyEncoder(json.JSONEncoder):
@@ -21,7 +23,72 @@ class NumpyEncoder(json.JSONEncoder):
             return obj.tolist()
         return super(NumpyEncoder, self).default(obj)
 
+# 自定义Pydantic序列化函数
+def numpy_serializer(obj):
+    if isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    return pydantic_encoder(obj)  # 默认的Pydantic序列化
+
+# 创建一个自定义的BaseModel，自动处理NumPy数据类型
+class NumpyBaseModel(BaseModel):
+    """扩展的基础模型，自动处理NumPy数据类型"""
+    
+    @classmethod
+    def _convert_numpy_types(cls, v):
+        if isinstance(v, np.integer):
+            return int(v)
+        elif isinstance(v, np.floating):
+            return float(v)
+        elif isinstance(v, np.ndarray):
+            return v.tolist()
+        elif isinstance(v, dict):
+            return {k: cls._convert_numpy_types(val) for k, val in v.items()}
+        elif isinstance(v, list):
+            return [cls._convert_numpy_types(item) for item in v]
+        return v
+    
+    @field_validator('*')
+    @classmethod
+    def validate_numpy_types(cls, v):
+        return cls._convert_numpy_types(v)
+    
+    model_config = {
+        'arbitrary_types_allowed': True,
+        'json_encoders': {
+            np.integer: lambda v: int(v),
+            np.floating: lambda v: float(v),
+            np.ndarray: lambda v: v.tolist()
+        }
+    }
+
 app = FastAPI(title="房产估价API")
+
+# 配置应用JSON序列化
+import fastapi.encoders
+# 保存原始的jsonable_encoder
+original_jsonable_encoder = fastapi.encoders.jsonable_encoder
+
+# 创建一个包装函数，处理NumPy类型
+def numpy_jsonable_encoder(obj, *args, **kwargs):
+    custom_encoder = kwargs.get('custom_encoder', {})
+    # 添加NumPy类型处理
+    numpy_encoders = {
+        np.integer: lambda v: int(v),
+        np.floating: lambda v: float(v),
+        np.ndarray: lambda v: v.tolist()
+    }
+    # 合并编码器
+    custom_encoder.update(numpy_encoders)
+    kwargs['custom_encoder'] = custom_encoder
+    # 调用原始函数
+    return original_jsonable_encoder(obj, *args, **kwargs)
+
+# 替换编码器
+fastapi.encoders.jsonable_encoder = numpy_jsonable_encoder
 
 # 配置CORS
 app.add_middleware(
@@ -47,11 +114,31 @@ class NumpyJSONResponse(JSONResponse):
 # 设置默认响应类
 app.json_response_class = NumpyJSONResponse
 
+# 添加辅助函数，用于在API返回前转换NumPy类型
+def convert_numpy_types(obj):
+    """递归转换所有NumPy类型为Python原生类型"""
+    if isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, dict):
+        return {k: convert_numpy_types(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_numpy_types(item) for item in obj]
+    elif isinstance(obj, tuple):
+        return tuple(convert_numpy_types(item) for item in obj)
+    elif hasattr(obj, '__dict__'):
+        # 处理自定义对象
+        return {k: convert_numpy_types(v) for k, v in obj.__dict__.items()}
+    return obj
+
 # 数据模型
-class PropertyFeatures(BaseModel):
+class PropertyFeatures(NumpyBaseModel):
     features: Dict[str, Any]
 
-class PredictionResult(BaseModel):
+class PredictionResult(NumpyBaseModel):
     predicted_price: float
     feature_importance: List[Dict[str, Any]]
 
@@ -71,12 +158,12 @@ MODEL = None
 PROPERTIES_DF = None
 
 # 重命名现有的PredictionResult类，以便不冲突
-class ModelPredictionResult(BaseModel):
+class ModelPredictionResult(NumpyBaseModel):
     predicted_price: float
     feature_importance: List[Dict[str, Any]]
 
 # 添加新的房产相关模型
-class Property(BaseModel):
+class Property(NumpyBaseModel):
     prop_id: str
     address: str
     predicted_price: float = 0
@@ -95,7 +182,7 @@ class PropertyDetail(Property):
         'protected_namespaces': ()  # 禁用保护命名空间检查
     }
 
-class PropertyListResponse(BaseModel):
+class PropertyListResponse(NumpyBaseModel):
     total: int
     page: int
     page_size: int
@@ -391,7 +478,7 @@ async def get_properties(
             total=total,
             page=page,
             page_size=page_size,
-            properties=properties
+            properties=convert_numpy_types(properties)
         )
     
     except Exception as e:
@@ -514,12 +601,12 @@ async def get_property_detail(prop_id: str):
             if not property_detail.comparable_properties:
                 property_detail.comparable_properties = generate_dummy_comparables(row, prop_id)
                 
-            return property_detail
+            return convert_numpy_types(property_detail)
             
         except Exception as e:
             print(f"创建PropertyDetail对象时出错: {e}")
             # 创建最基本的PropertyDetail对象
-            return PropertyDetail(
+            property_detail = PropertyDetail(
                 prop_id=str(row['prop_id']),
                 address=row['std_address'],
                 predicted_price=pred_price,
@@ -532,6 +619,8 @@ async def get_property_detail(prop_id: str):
                 confidence_interval=calculate_confidence_interval(pred_price),
                 ai_explanation=get_model_explanation(pred_price, [], FEATURE_COLS if FEATURE_COLS else [])
             )
+            
+            return convert_numpy_types(property_detail)
     
     except HTTPException:
         raise
