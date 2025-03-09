@@ -10,6 +10,17 @@ import joblib
 from pathlib import Path
 import json
 
+# 添加自定义JSON编码器处理NumPy类型
+class NumpyEncoder(json.JSONEncoder):
+    def default(self, obj):
+        if isinstance(obj, np.integer):
+            return int(obj)
+        elif isinstance(obj, np.floating):
+            return float(obj)
+        elif isinstance(obj, np.ndarray):
+            return obj.tolist()
+        return super(NumpyEncoder, self).default(obj)
+
 app = FastAPI(title="房产估价API")
 
 # 配置CORS
@@ -20,6 +31,21 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# 添加自定义响应类，使用NumpyEncoder处理NumPy类型
+class NumpyJSONResponse(JSONResponse):
+    def render(self, content: Any) -> bytes:
+        return json.dumps(
+            content,
+            ensure_ascii=False,
+            allow_nan=True,
+            indent=None,
+            separators=(",", ":"),
+            cls=NumpyEncoder,
+        ).encode("utf-8")
+
+# 设置默认响应类
+app.json_response_class = NumpyJSONResponse
 
 # 数据模型
 class PropertyFeatures(BaseModel):
@@ -247,7 +273,7 @@ async def predict_price(property_data: PropertyFeatures):
                     importance = float(importances[idx])
                     feature_importance.append({
                         "feature": feature,
-                        "value": float(value) if not isinstance(value, str) else value,
+                        "value": float(value) if isinstance(value, (np.integer, np.floating)) else value if isinstance(value, (int, float, str, bool)) else str(value),
                         "importance": importance,
                         "effect": "positive" if importance > 0 else "negative"
                     })

@@ -175,6 +175,11 @@ def main():
         print(f"\n启动系统时发生错误: {str(e)}")
         print("请检查上述错误信息并修复问题。")
         sys.exit(1)
+'''
+npm run dev 后台启动
+nohup npm run dev & 
+nohup python3 backend/main.py &
 
+'''
 if __name__ == "__main__":
     main() 
