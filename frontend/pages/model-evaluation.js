@@ -200,7 +200,7 @@ export default function ModelEvaluation() {
           items={[
             { key: '1', label: <Link href="/">首页</Link> },
             { key: '2', label: '模型评估' },
-            { key: '3', label: <Link href="/property-reports">样本报告</Link> },
+            { key: '3', label: <Link href="/property-reports">房产估价报告</Link> },
           ]}
         />
       </Header>

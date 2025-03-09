@@ -87,7 +87,7 @@ export default function PropertyBasicInfoPage() {
             items={[
               { key: '1', label: <Link href="/">首页</Link> },
               { key: '2', label: <Link href="/model-evaluation">模型评估</Link> },
-              { key: '3', label: <Link href="/property-reports">房产报告</Link> },
+              { key: '3', label: <Link href="/property-reports">房产估价报告</Link> },
             ]}
           />
         </Header>
@@ -127,7 +127,7 @@ export default function PropertyBasicInfoPage() {
             items={[
               { key: '1', label: <Link href="/">首页</Link> },
               { key: '2', label: <Link href="/model-evaluation">模型评估</Link> },
-              { key: '3', label: <Link href="/property-reports">房产报告</Link> },
+              { key: '3', label: <Link href="/property-reports">房产估价报告</Link> },
             ]}
           />
         </Header>
@@ -146,7 +146,7 @@ export default function PropertyBasicInfoPage() {
               subTitle={error}
               extra={
                 <Button type="primary">
-                  <Link href="/property-reports">返回房产报告列表</Link>
+                  <Link href="/property-reports">返回房产估价报告列表</Link>
                 </Button>
               }
             />
@@ -177,7 +177,7 @@ export default function PropertyBasicInfoPage() {
             items={[
               { key: '1', label: <Link href="/">首页</Link> },
               { key: '2', label: <Link href="/model-evaluation">模型评估</Link> },
-              { key: '3', label: <Link href="/property-reports">房产报告</Link> },
+              { key: '3', label: <Link href="/property-reports">房产估价报告</Link> },
             ]}
           />
         </Header>
@@ -195,7 +195,7 @@ export default function PropertyBasicInfoPage() {
               subTitle="无法找到指定ID的房产信息"
               extra={
                 <Button type="primary">
-                  <Link href="/property-reports">返回房产报告列表</Link>
+                  <Link href="/property-reports">返回房产估价报告列表</Link>
                 </Button>
               }
             />
@@ -231,7 +231,7 @@ export default function PropertyBasicInfoPage() {
           items={[
             { key: '1', label: <Link href="/">首页</Link> },
             { key: '2', label: <Link href="/model-evaluation">模型评估</Link> },
-            { key: '3', label: <Link href="/property-reports">房产报告</Link> },
+            { key: '3', label: <Link href="/property-reports">房产估价报告</Link> },
           ]}
         />
       </Header>
@@ -244,7 +244,7 @@ export default function PropertyBasicInfoPage() {
               <Link href="/">首页</Link>
             </Breadcrumb.Item>
             <Breadcrumb.Item>
-              <Link href="/property-reports">房产报告</Link>
+              <Link href="/property-reports">房产估价报告</Link>
             </Breadcrumb.Item>
             <Breadcrumb.Item>
               <Link href={`/property-reports/${id}`}>{property.id}</Link>

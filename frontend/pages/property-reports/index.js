@@ -184,7 +184,7 @@ export default function PropertyReports() {
   return (
     <Layout className="layout">
       <Head>
-        <title>房产报告 - PropertyWize</title>
+        <title>房产估价报告 - PropertyWize</title>
         <meta name="description" content="浏览房产估价报告样例，了解AI如何分析不同类型的房产" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -203,7 +203,7 @@ export default function PropertyReports() {
           items={[
             { key: '1', label: <Link href="/">首页</Link> },
             { key: '2', label: <Link href="/model-evaluation">模型评估</Link> },
-            { key: '3', label: '房产报告' },
+            { key: '3', label: '房产估价报告' },
           ]}
         />
       </Header>
@@ -239,7 +239,7 @@ export default function PropertyReports() {
           {/* 显示小标题 */}
           <Divider orientation="left">房产列表</Divider>
 
-          {/* 房产报告列表 */}
+          {/* 房产估价报告列表 */}
           {loading ? (
             <div style={{ textAlign: 'center', margin: '50px 0' }}>
               <Spin size="large" />
@@ -258,7 +258,7 @@ export default function PropertyReports() {
               </Button>
             </div>
           ) : properties.length === 0 ? (
-            <Empty description="没有找到符合条件的房产报告" />
+            <Empty description="没有找到符合条件的房产估价报告" />
           ) : (
             <>
               <List

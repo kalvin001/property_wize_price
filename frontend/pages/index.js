@@ -116,13 +116,13 @@ export default function Home() {
       const data = await response.json();
       
       if (data.properties && data.properties.length > 0) {
-        // 有结果，重定向到房产报告页面，保留搜索条件
+        // 有结果，重定向到房产估价报告页面，保留搜索条件
         Router.push({
           pathname: '/property-reports',
           query: { search: value }
         });
       } else {
-        // 无结果，也重定向到房产报告页面
+        // 无结果，也重定向到房产估价报告页面
         message.info('未找到匹配的房产，显示所有房产');
         Router.push('/property-reports');
       }
@@ -156,7 +156,7 @@ export default function Home() {
           items={[
             { key: '1', label: '首页' },
             { key: '2', label: <Link href="/model-evaluation">模型评估</Link> },
-            { key: '3', label: <Link href="/property-reports">房产报告</Link> },
+            { key: '3', label: <Link href="/property-reports">房产估价报告</Link> },
           ]}
         />
       </Header>
@@ -200,7 +200,7 @@ export default function Home() {
                 if (element) element.scrollIntoView({ behavior: 'smooth' });
               }}>开始估价</Button>
               <Button ghost size="large" style={{ color: 'white', borderColor: 'white' }}>
-                <Link href="/property-reports" style={{ color: 'white' }}>查看房产报告</Link>
+                <Link href="/property-reports" style={{ color: 'white' }}>查看房产估价报告</Link>
               </Button>
             </Space>
           </div>
@@ -296,7 +296,7 @@ export default function Home() {
           
           <div style={{ textAlign: 'center', marginTop: '30px' }}>
             <Link href="/property-reports">
-              <Button type="primary">查看更多房产报告</Button>
+              <Button type="primary">查看更多房产估价报告</Button>
             </Link>
           </div>
         </div>
@@ -410,7 +410,7 @@ export default function Home() {
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               <Link href="/" style={{ color: '#ccc', marginBottom: '10px' }}>首页</Link>
               <Link href="/model-evaluation" style={{ color: '#ccc', marginBottom: '10px' }}>模型评估</Link>
-              <Link href="/property-reports" style={{ color: '#ccc', marginBottom: '10px' }}>房产报告</Link>
+              <Link href="/property-reports" style={{ color: '#ccc', marginBottom: '10px' }}>房产估价报告</Link>
               <a href="#" style={{ color: '#ccc' }}>联系我们</a>
             </div>
           </Col>

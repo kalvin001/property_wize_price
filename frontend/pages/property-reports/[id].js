@@ -312,7 +312,7 @@ export default function PropertyDetail() {
             items={[
               { key: '1', label: <Link href="/">首页</Link> },
               { key: '2', label: <Link href="/model-evaluation">模型评估</Link> },
-              { key: '3', label: <Link href="/property-reports">房产报告</Link> },
+              { key: '3', label: <Link href="/property-reports">房产估价报告</Link> },
             ]}
           />
         </Header>
@@ -352,7 +352,7 @@ export default function PropertyDetail() {
             items={[
               { key: '1', label: <Link href="/">首页</Link> },
               { key: '2', label: <Link href="/model-evaluation">模型评估</Link> },
-              { key: '3', label: <Link href="/property-reports">房产报告</Link> },
+              { key: '3', label: <Link href="/property-reports">房产估价报告</Link> },
             ]}
           />
         </Header>
@@ -371,7 +371,7 @@ export default function PropertyDetail() {
               subTitle={error}
               extra={
                 <Button type="primary">
-                  <Link href="/property-reports">返回房产报告列表</Link>
+                  <Link href="/property-reports">返回房产估价报告列表</Link>
                 </Button>
               }
             />
@@ -402,7 +402,7 @@ export default function PropertyDetail() {
             items={[
               { key: '1', label: <Link href="/">首页</Link> },
               { key: '2', label: <Link href="/model-evaluation">模型评估</Link> },
-              { key: '3', label: <Link href="/property-reports">房产报告</Link> },
+              { key: '3', label: <Link href="/property-reports">房产估价报告</Link> },
             ]}
           />
         </Header>
@@ -417,11 +417,11 @@ export default function PropertyDetail() {
           }}>
             <Result
               status="404"
-              title="未找到房产报告"
-              subTitle="抱歉，您查找的房产报告不存在或已被删除。"
+              title="未找到房产估价报告"
+              subTitle="抱歉，您查找的房产估价报告不存在或已被删除。"
               extra={
                 <Button type="primary">
-                  <Link href="/property-reports">返回房产报告列表</Link>
+                  <Link href="/property-reports">返回房产估价报告列表</Link>
                 </Button>
               }
             />
@@ -438,7 +438,7 @@ export default function PropertyDetail() {
   return (
     <Layout className="layout">
       <Head>
-        <title>{property.address || '房产报告'} - PropertyWize</title>
+        <title>{property.address || '房产估价报告'} - PropertyWize</title>
         <meta name="description" content={`${property.address || '房产'}的详细估价报告和分析`} />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -457,7 +457,7 @@ export default function PropertyDetail() {
           items={[
             { key: '1', label: <Link href="/">首页</Link> },
             { key: '2', label: <Link href="/model-evaluation">模型评估</Link> },
-            { key: '3', label: <Link href="/property-reports">房产报告</Link> },
+            { key: '3', label: <Link href="/property-reports">房产估价报告</Link> },
           ]}
         />
       </Header>
@@ -470,7 +470,7 @@ export default function PropertyDetail() {
               <Link href="/">首页</Link>
             </Breadcrumb.Item>
             <Breadcrumb.Item>
-              <Link href="/property-reports">房产报告</Link>
+              <Link href="/property-reports">房产估价报告</Link>
             </Breadcrumb.Item>
             <Breadcrumb.Item>{property.id}</Breadcrumb.Item>
           </Breadcrumb>

@@ -47,9 +47,9 @@ const PropertyPriceResult = ({ property }) => {
         </>
       )}
       
-      <Divider style={{ margin: '16px 0' }} />
+      {/* <Divider style={{ margin: '16px 0' }} /> */}
       
-      {property.area > 0 && (
+      {/* {property.area > 0 && (
         <div style={{ marginTop: '16px' }}>
           <Statistic
             title="单价"
@@ -58,7 +58,7 @@ const PropertyPriceResult = ({ property }) => {
             valueStyle={{ fontSize: '16px' }}
           />
         </div>
-      )}
+      )} */}
     </Card>
   );
 };

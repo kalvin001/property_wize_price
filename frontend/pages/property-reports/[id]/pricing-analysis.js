@@ -98,7 +98,8 @@ export default function PropertyPricingAnalysis() {
         max_price: data.predicted_price * 1.15,
         num_properties: 28,
         price_trend: '上升',
-        avg_price_per_sqm: data.predicted_price / (data.features?.prop_area || 100)
+        avg_price_per_sqm: data.predicted_price / (data.features?.prop_area || 100),
+        current_price: data.predicted_price
       },
       confidence_interval: data.confidence_interval || {
         lower_bound: data.predicted_price * 0.93,
@@ -135,7 +136,7 @@ export default function PropertyPricingAnalysis() {
             items={[
               { key: '1', label: <Link href="/">首页</Link> },
               { key: '2', label: <Link href="/model-evaluation">模型评估</Link> },
-              { key: '3', label: <Link href="/property-reports">房产报告</Link> },
+              { key: '3', label: <Link href="/property-reports">房产估价报告</Link> },
             ]}
           />
         </Header>
@@ -175,7 +176,7 @@ export default function PropertyPricingAnalysis() {
             items={[
               { key: '1', label: <Link href="/">首页</Link> },
               { key: '2', label: <Link href="/model-evaluation">模型评估</Link> },
-              { key: '3', label: <Link href="/property-reports">房产报告</Link> },
+              { key: '3', label: <Link href="/property-reports">房产估价报告</Link> },
             ]}
           />
         </Header>
@@ -194,7 +195,7 @@ export default function PropertyPricingAnalysis() {
               subTitle={error}
               extra={
                 <Button type="primary">
-                  <Link href="/property-reports">返回房产报告列表</Link>
+                  <Link href="/property-reports">返回房产估价报告列表</Link>
                 </Button>
               }
             />
@@ -225,7 +226,7 @@ export default function PropertyPricingAnalysis() {
             items={[
               { key: '1', label: <Link href="/">首页</Link> },
               { key: '2', label: <Link href="/model-evaluation">模型评估</Link> },
-              { key: '3', label: <Link href="/property-reports">房产报告</Link> },
+              { key: '3', label: <Link href="/property-reports">房产估价报告</Link> },
             ]}
           />
         </Header>
@@ -243,7 +244,7 @@ export default function PropertyPricingAnalysis() {
               subTitle="无法找到指定ID的房产信息"
               extra={
                 <Button type="primary">
-                  <Link href="/property-reports">返回房产报告列表</Link>
+                  <Link href="/property-reports">返回房产估价报告列表</Link>
                 </Button>
               }
             />
@@ -279,7 +280,7 @@ export default function PropertyPricingAnalysis() {
           items={[
             { key: '1', label: <Link href="/">首页</Link> },
             { key: '2', label: <Link href="/model-evaluation">模型评估</Link> },
-            { key: '3', label: <Link href="/property-reports">房产报告</Link> },
+            { key: '3', label: <Link href="/property-reports">房产估价报告</Link> },
           ]}
         />
       </Header>
@@ -292,7 +293,7 @@ export default function PropertyPricingAnalysis() {
               <Link href="/">首页</Link>
             </Breadcrumb.Item>
             <Breadcrumb.Item>
-              <Link href="/property-reports">房产报告</Link>
+              <Link href="/property-reports">房产估价报告</Link>
             </Breadcrumb.Item>
             <Breadcrumb.Item>
               <Link href={`/property-reports/${id}`}>{property.id}</Link>

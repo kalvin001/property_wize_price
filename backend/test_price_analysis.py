@@ -207,7 +207,7 @@ class TestPriceAnalysis(unittest.TestCase):
         
         # 使用样本的面积，如果存在的话
         sample_area = 0
-        for area_col in ['internal_area', 'prop_area', 'land_size']:
+        for area_col in ['internal_area']:
             if area_col in self.sample_df.columns:
                 sample_area = float(self.sample_df.iloc[0].get(area_col, 0))
                 if sample_area > 0:
@@ -290,6 +290,7 @@ if __name__ == '__main__':
     #unittest.main() 
     #单个测试
     suite = unittest.TestSuite()
-    suite.addTest(TestPriceAnalysis('test_predict_property_price'))
+    #测试可比房产
+    suite.addTest(TestPriceAnalysis('test_find_comparable_properties'))
     unittest.TextTestRunner().run(suite)
     #unittest.main(defaultTest='backend.test_price_analysis.TestPriceAnalysis.test_predict_property_price')
