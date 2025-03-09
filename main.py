@@ -96,7 +96,7 @@ def start_servers():
     
     # 使用start命令在Windows上启动分离的进程
     if use_shell and os.name == 'nt':
-        cmd = f"start cmd /k {npm_cmd} run start"
+        cmd = f"start cmd /k {npm_cmd} run start:dev"
         frontend_process = subprocess.Popen(
             cmd,
             shell=True,
@@ -105,7 +105,7 @@ def start_servers():
     else:
         # 在非Windows系统上使用标准方法
         frontend_process = subprocess.Popen(
-            [npm_cmd, "run", "start"],
+            [npm_cmd, "run", "start:dev"],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             env=env

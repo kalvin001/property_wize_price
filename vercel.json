@@ -5,7 +5,9 @@
       "src": "frontend/package.json",
       "use": "@vercel/next",
       "config": {
-        "distDir": ".next"
+        "distDir": ".next",
+        "buildCommand": "npm run build",
+        "devCommand": "npm run start:dev"
       }
     },
     {
