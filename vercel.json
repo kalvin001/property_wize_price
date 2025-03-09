@@ -3,9 +3,9 @@
   "builds": [
     {
       "src": "frontend/package.json",
-      "use": "@vercel/static-build",
+      "use": "@vercel/next",
       "config": {
-        "distDir": "dist"
+        "distDir": ".next"
       }
     },
     {
@@ -17,10 +17,6 @@
     {
       "src": "/api/(.*)",
       "dest": "backend/main.py"
-    },
-    {
-      "src": "/data/(.*)",
-      "dest": "frontend/public/data/$1"
     },
     {
       "src": "/(.*)",

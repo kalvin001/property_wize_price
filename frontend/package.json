@@ -1,23 +1,23 @@
 {
-  "name": "hello-world-frontend",
-  "version": "0.1.0",
-  "private": true,
+  "name": "property-wize-price",
+  "version": "1.0.0",
+  "description": "可解释房产估价系统",
+  "main": "index.js",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "start:dev": "next dev -p 3001"
+  },
+  "keywords": ["房产估价", "可解释AI", "Ant Design"],
+  "author": "",
+  "license": "ISC",
   "dependencies": {
+    "next": "^13.4.19",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "antd": "^5.10.0",
-    "axios": "^1.5.1"
-  },
-  "scripts": {
-    "start": "vite",
-    "build": "vite build",
-    "preview": "vite preview"
-  },
-  "devDependencies": {
-    "@types/react": "^18.2.15",
-    "@types/react-dom": "^18.2.7",
-    "@vitejs/plugin-react": "^4.0.3",
-    "typescript": "^5.0.2",
-    "vite": "^4.4.5"
+    "antd": "^5.7.0",
+    "@ant-design/icons": "^5.1.4"
   }
-} 
+}

@@ -9,8 +9,10 @@ project/
 ├── backend/           # FastAPI后端
 │   ├── main.py        # 主应用文件
 │   └── requirements.txt  # Python依赖
-├── frontend/          # React前端
-│   ├── src/           # 源代码
+├── frontend/          # Next.js前端
+│   ├── pages/         # 页面组件
+│   ├── components/    # 可复用组件
+│   ├── styles/        # 样式文件
 │   ├── public/        # 静态资源
 │   └── package.json   # npm依赖
 ├── model/             # 模型文件（不包含在Git仓库中）
@@ -38,10 +40,10 @@ project/
 
 ### 前端
 
-- **React**：前端框架
+- **Next.js**：React框架，支持服务端渲染
 - **Ant Design**：UI组件库
-- **TypeScript**：类型安全的JavaScript
-- **Vite**：现代前端构建工具
+- **React**：前端库
+- **CSS Modules**：组件级样式隔离
 
 ## 安装与运行
 
@@ -67,10 +69,16 @@ python main.py
 ```bash
 cd frontend
 npm install
-npm start
+npm run dev
 ```
 
 应用将在 http://localhost:3001 上运行。
+
+或者，您可以使用批处理脚本启动前端：
+
+```bash
+start_frontend.bat
+```
 
 ## API端点
 
@@ -106,5 +114,5 @@ git push -u origin main
 2. 连接到GitHub仓库
 3. 配置构建设置：
    - 前端构建命令: `cd frontend && npm install && npm run build`
-   - 输出目录: `frontend/dist`
+   - 输出目录: `frontend/.next`
    - 构建前运行: `python analyze_data.py` (生成模型文件) 
