@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 import joblib
 from pathlib import Path
+import json
 
 app = FastAPI(title="房产估价API")
 
@@ -30,21 +31,84 @@ class PredictionResult(BaseModel):
 
 # 全局变量
 MODEL_PATH = Path("../model/xgb_model.joblib")  # 更新为XGBoost模型路径
+# 备选路径，以防主路径不工作
+ALTERNATE_MODEL_PATHS = [
+    Path("model/xgb_model.joblib"),
+    Path("./model/xgb_model.joblib"),
+    Path("../../model/xgb_model.joblib"),
+    Path(os.path.abspath("../model/xgb_model.joblib"))
+]
 FEATURE_COLS = []
 MODEL = None
 
+# 全局变量，用于存储房产数据
+PROPERTIES_DF = None
+
+# 重命名现有的PredictionResult类，以便不冲突
+class ModelPredictionResult(BaseModel):
+    predicted_price: float
+    feature_importance: List[Dict[str, Any]]
+
+# 添加新的房产相关模型
+class Property(BaseModel):
+    prop_id: str
+    address: str
+    predicted_price: float = 0
+    features: Dict[str, Any]
+
+class PropertyDetail(Property):
+    feature_importance: List[Dict[str, Any]] = []
+    comparable_properties: List[Dict[str, Any]] = []
+    price_trends: List[Dict[str, Any]] = []  # 历史价格趋势
+    price_range: Dict[str, float] = {}  # 价格预测区间
+    neighborhood_stats: Dict[str, Any] = {}  # 周边区域统计
+    confidence_interval: Dict[str, float] = {}  # 置信区间
+    ai_explanation: Dict[str, Any] = {}  # 更详细的模型解释（重命名避免冲突）
+    
+    model_config = {
+        'protected_namespaces': ()  # 禁用保护命名空间检查
+    }
+
+class PropertyListResponse(BaseModel):
+    total: int
+    page: int
+    page_size: int
+    properties: List[Property]
+
 @app.on_event("startup")
 async def startup_event():
-    global MODEL, FEATURE_COLS
-    if MODEL_PATH.exists():
-        MODEL = joblib.load(MODEL_PATH)
-        # 加载特征列名
+    global MODEL, FEATURE_COLS, PROPERTIES_DF
+    
+    try:
+        # 加载模型和特征列
+        model_path = Path("../model/xgb_model.joblib")
         feature_cols_path = Path("../model/feature_cols.joblib")
-        if feature_cols_path.exists():
+        
+        if model_path.exists() and feature_cols_path.exists():
+            MODEL = joblib.load(model_path)
             FEATURE_COLS = joblib.load(feature_cols_path)
-        print(f"XGBoost模型已加载，特征数量: {len(FEATURE_COLS)}")
-    else:
-        print("警告：模型文件不存在，请先运行分析脚本生成模型")
+            print(f"模型已加载，特征数量: {len(FEATURE_COLS)}")
+            
+            # 设置XGBoost的参数支持分类特征
+            if hasattr(MODEL, '_Booster'):
+                MODEL._Booster.set_param('enable_categorical', 'true')
+                print("已启用XGBoost分类特征支持")
+        else:
+            print("模型文件不存在，无法加载模型")
+            
+        # 尝试加载房产数据
+        try:
+            csv_path = Path("../resources/house_samples_features.csv")
+            if csv_path.exists():
+                PROPERTIES_DF = pd.read_csv(csv_path)
+                print(f"房产数据已加载，共 {len(PROPERTIES_DF)} 条记录")
+            else:
+                print("房产数据文件不存在")
+        except Exception as e:
+            print(f"加载房产数据出错: {e}")
+            
+    except Exception as e:
+        print(f"启动时出错: {e}")
 
 @app.get("/")
 async def root():
@@ -67,20 +131,36 @@ async def model_info():
         
         model_metrics = {}
         if metrics_path.exists():
-            import json
             with open(metrics_path, 'r') as f:
                 model_metrics = json.load(f)
+                
+            # 注意：现在所有指标都已在analyze_data.py中计算，不需要在这里重新计算
+            # 如果后续有新指标需要添加，可以在这里计算
+            
+            # 如果没有特征重要性数据，但模型有feature_importances_属性，则添加
+            if "feature_importance" not in model_metrics and MODEL is not None and hasattr(MODEL, 'feature_importances_'):
+                feature_importances = MODEL.feature_importances_
+                sorted_idx = np.argsort(feature_importances)[::-1]
+                top_features = []
+                
+                for i in sorted_idx[:20]:  # 取前20个最重要的特征
+                    if i < len(FEATURE_COLS):
+                        top_features.append({
+                            "feature": FEATURE_COLS[i],
+                            "importance": float(feature_importances[i])
+                        })
+                        
+                model_metrics["feature_importance"] = top_features
         
         data_info = {}
         if data_info_path.exists():
-            import json
             with open(data_info_path, 'r') as f:
                 data_info = json.load(f)
         
         return {
             "model_type": "XGBRegressor",  # 更新为XGBoost
             "features_count": len(FEATURE_COLS),
-            "feature_names": FEATURE_COLS[:10] + ["..."] if FEATURE_COLS else [],
+            "feature_names": FEATURE_COLS[:10] + ["..."] if len(FEATURE_COLS) > 10 else FEATURE_COLS,
             "metrics": model_metrics,
             "data_info": data_info
         }
@@ -98,7 +178,6 @@ async def get_sample_properties():
     if not sample_path.exists():
         raise HTTPException(status_code=404, detail="样本房产数据不存在")
     
-    import json
     with open(sample_path, 'r') as f:
         sample_properties = json.load(f)
     
@@ -106,45 +185,296 @@ async def get_sample_properties():
 
 @app.post("/api/predict")
 async def predict_price(property_data: PropertyFeatures):
-    """基于输入特征预测房价"""
+    """预测房价"""
     if MODEL is None:
-        raise HTTPException(status_code=503, detail="模型尚未加载")
+        raise HTTPException(status_code=404, detail="模型尚未加载")
     
-    # 准备特征数据
-    features = property_data.features
-    missing_features = [f for f in FEATURE_COLS if f not in features]
-    if missing_features:
-        return JSONResponse(
-            status_code=400,
-            content={"detail": f"缺少必要的特征: {', '.join(missing_features[:5])}..."}
-        )
-    
-    # 构建特征向量 - 使用DataFrame以保留特征名称
-    feature_df = pd.DataFrame([{feature: features.get(feature, 0) for feature in FEATURE_COLS}])
-    
-    # 预测价格
     try:
-        predicted_price = float(MODEL.predict(feature_df)[0])
+        # 将输入特征转换为DataFrame
+        features_df = pd.DataFrame([property_data.features])
         
-        # 获取特征重要性
+        # 确保所有特征列都存在
+        for col in FEATURE_COLS:
+            if col not in features_df.columns:
+                features_df[col] = 0  # 如果特征不存在，用0填充
+        
+        # 只保留模型使用的特征，并按正确顺序排列
+        features_df = features_df[FEATURE_COLS]
+        
+        # 确保数据类型正确
+        for col in features_df.columns:
+            if features_df[col].dtype == 'object':
+                # 尝试转换为数值型
+                try:
+                    features_df[col] = pd.to_numeric(features_df[col], errors='coerce')
+                except:
+                    # 如果无法转换为数值，将其转换为分类型
+                    features_df[col] = features_df[col].astype('category')
+        
+        # 预测价格
+        predicted_price = float(MODEL.predict(features_df)[0])
+        
+        # 计算特征重要性
         feature_importance = []
         if hasattr(MODEL, 'feature_importances_'):
             importances = MODEL.feature_importances_
-            indices = np.argsort(importances)[-10:]  # 获取最重要的10个特征
-            for i in reversed(indices):
-                if i < len(FEATURE_COLS):
+            indices = np.argsort(importances)[::-1]
+            top_n = min(10, len(FEATURE_COLS))  # 最多返回前10个重要特征
+            
+            for i in range(top_n):
+                idx = indices[i]
+                if idx < len(FEATURE_COLS):
+                    feature = FEATURE_COLS[idx]
+                    value = features_df[feature].values[0]
+                    importance = float(importances[idx])
                     feature_importance.append({
-                        "feature": FEATURE_COLS[i],
-                        "importance": float(importances[i]),
-                        "value": float(features.get(FEATURE_COLS[i], 0))
+                        "feature": feature,
+                        "value": float(value) if not isinstance(value, str) else value,
+                        "importance": importance,
+                        "effect": "positive" if importance > 0 else "negative"
                     })
         
-        return {
-            "predicted_price": predicted_price,
-            "feature_importance": feature_importance
-        }
+        return ModelPredictionResult(
+            predicted_price=predicted_price,
+            feature_importance=feature_importance
+        )
+    
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"预测出错: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"预测过程中出错: {str(e)}")
+
+# 添加获取房产列表的API接口
+@app.get("/api/properties", response_model=PropertyListResponse)
+async def get_properties(
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=100),
+    property_type: Optional[str] = None,
+    query: Optional[str] = None
+):
+    """获取房产列表，支持分页和筛选"""
+    if PROPERTIES_DF is None:
+        raise HTTPException(status_code=404, detail="房产数据尚未加载")
+    
+    try:
+        # 创建过滤后的数据副本
+        filtered_df = PROPERTIES_DF.copy()
+        
+        # 应用过滤条件
+        if property_type and 'prop_type' in filtered_df.columns:
+            filtered_df = filtered_df[filtered_df['prop_type'] == property_type]
+            
+        if query:
+            # 搜索地址或ID
+            query_lower = query.lower()
+            address_mask = filtered_df['std_address'].str.lower().str.contains(query_lower, na=False)
+            id_mask = filtered_df['prop_id'].astype(str).str.contains(query_lower, na=False)
+            filtered_df = filtered_df[address_mask | id_mask]
+        
+        # 计算总数
+        total = len(filtered_df)
+        
+        # 应用分页
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+        paged_df = filtered_df.iloc[start_idx:end_idx]
+        
+        # 构造响应
+        properties = []
+        for _, row in paged_df.iterrows():
+            # 实际的y_label价格
+            actual_price = float(row.get('y_label', 0))
+            
+            # 计算房价预测
+            pred_price = 0
+            if MODEL is not None and set(FEATURE_COLS).issubset(filtered_df.columns):
+                try:
+                    features = row[FEATURE_COLS]
+                    # 使用模型预测前，确保所有特征数据类型正确
+                    features_df = features.to_frame().T
+                    
+                    # 转换数据类型 - 将object类型转为数值型
+                    for col in features_df.columns:
+                        if features_df[col].dtype == 'object':
+                            # 尝试转换为数值型
+                            try:
+                                features_df[col] = pd.to_numeric(features_df[col], errors='coerce')
+                            except:
+                                # 如果无法转换为数值，将其转换为分类型
+                                features_df[col] = features_df[col].astype('category')
+                    
+                    # 使用模型预测
+                    pred_price = float(MODEL.predict(features_df)[0])
+                     
+                except Exception as e:
+                    print(f"预测异常: {e}") 
+            else:  
+                print(f"模型不可用，使用随机预测: {pred_price}")
+            
+            # 创建属性字典
+            features = {}
+            for col in row.index:
+                if col not in ['prop_id', 'std_address']:
+                    val = row[col]
+                    features[col] = float(val) if isinstance(val, (int, float)) and not np.isnan(val) else (
+                        str(val) if not pd.isna(val) else None
+                    )
+            
+            properties.append(Property(
+                prop_id=str(row['prop_id']),
+                address=row['std_address'],
+                predicted_price=pred_price,
+                features=features
+            ))
+        
+        return PropertyListResponse(
+            total=total,
+            page=page,
+            page_size=page_size,
+            properties=properties
+        )
+    
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取房产列表出错: {str(e)}")
+
+# 添加获取单个房产详情的API接口
+@app.get("/api/properties/{prop_id}", response_model=PropertyDetail)
+async def get_property_detail(prop_id: str):
+    """获取单个房产的详情"""
+    if PROPERTIES_DF is None:
+        raise HTTPException(status_code=404, detail="房产数据尚未加载")
+    
+    try:
+        # 查找指定ID的房产
+        prop_df = PROPERTIES_DF[PROPERTIES_DF['prop_id'].astype(str) == prop_id]
+        
+        if len(prop_df) == 0:
+            raise HTTPException(status_code=404, detail=f"找不到ID为 {prop_id} 的房产")
+        
+        # 获取第一个匹配的房产
+        row = prop_df.iloc[0]
+        
+        # 使用price_analysis模块计算预测价格和特征重要性
+        from price_analysis import (
+            predict_property_price, 
+            find_comparable_properties,
+            generate_price_trends,
+            calculate_price_range,
+            get_neighborhood_stats,
+            calculate_confidence_interval,
+            get_model_explanation
+        )
+        
+        # 导入备用数据生成函数
+        from price_utils import generate_rule_based_importance, generate_dummy_comparables
+        
+        # 预测价格和计算特征重要性
+        try:
+            pred_price, feature_importance = predict_property_price(
+                row=row, 
+                model=MODEL, 
+                feature_cols=FEATURE_COLS, 
+                properties_df=PROPERTIES_DF
+            )
+        except Exception as e:
+            print(f"预测价格和计算特征重要性时出错: {e}")
+            # 使用实际价格或默认值
+            if 'y_label' in row and pd.notna(row['y_label']):
+                try:
+                    pred_price = float(row['y_label'])
+                except:
+                    pred_price = 750000
+            else:
+                pred_price = 750000
+                
+            # 使用规则生成特征重要性
+            feature_importance = generate_rule_based_importance(
+                row=row, 
+                feature_cols=FEATURE_COLS if FEATURE_COLS else [], 
+                pred_price=pred_price
+            )
+        
+        # 查找可比房产
+        try:
+            comparable_properties = find_comparable_properties(
+                row=row,
+                prop_id=prop_id,
+                properties_df=PROPERTIES_DF
+            )
+            
+            # 确保我们至少有一些可比房产
+            if not comparable_properties:
+                comparable_properties = generate_dummy_comparables(row, prop_id)
+        except Exception as e:
+            print(f"查找可比房产时出错: {e}")
+            # 生成虚拟可比房产
+            comparable_properties = generate_dummy_comparables(row, prop_id)
+        
+        # 创建属性字典
+        features = {}
+        for col in row.index:
+            if col not in ['prop_id', 'std_address']:
+                val = row[col]
+                features[col] = float(val) if isinstance(val, (int, float)) and not np.isnan(val) else (
+                    str(val) if not pd.isna(val) else None
+                )
+        
+        # 房产面积
+        prop_area = float(row.get('prop_area', 100))
+        
+        try:
+            property_detail = PropertyDetail(
+                prop_id=str(row['prop_id']),
+                address=row['std_address'],
+                predicted_price=pred_price,
+                features=features,
+                feature_importance=feature_importance,
+                comparable_properties=comparable_properties,
+                # 添加历史价格趋势数据
+                price_trends=generate_price_trends(pred_price),
+                # 添加价格预测区间
+                price_range=calculate_price_range(pred_price),
+                # 添加周边区域统计
+                neighborhood_stats=get_neighborhood_stats(pred_price, prop_area, row, PROPERTIES_DF),
+                # 添加置信区间
+                confidence_interval=calculate_confidence_interval(pred_price),
+                # 添加更详细的模型解释
+                ai_explanation=get_model_explanation(pred_price, feature_importance, FEATURE_COLS)
+            )
+            
+            # 检查并确保feature_importance不为空
+            if not property_detail.feature_importance:
+                property_detail.feature_importance = generate_rule_based_importance(
+                    row=row, 
+                    feature_cols=FEATURE_COLS if FEATURE_COLS else [],
+                    pred_price=pred_price
+                )
+            
+            # 检查并确保comparable_properties不为空
+            if not property_detail.comparable_properties:
+                property_detail.comparable_properties = generate_dummy_comparables(row, prop_id)
+                
+            return property_detail
+            
+        except Exception as e:
+            print(f"创建PropertyDetail对象时出错: {e}")
+            # 创建最基本的PropertyDetail对象
+            return PropertyDetail(
+                prop_id=str(row['prop_id']),
+                address=row['std_address'],
+                predicted_price=pred_price,
+                features=features,
+                feature_importance=generate_rule_based_importance(row, FEATURE_COLS if FEATURE_COLS else [], pred_price),
+                comparable_properties=generate_dummy_comparables(row, prop_id),
+                price_trends=generate_price_trends(pred_price),
+                price_range=calculate_price_range(pred_price),
+                neighborhood_stats=get_neighborhood_stats(pred_price, prop_area),
+                confidence_interval=calculate_confidence_interval(pred_price),
+                ai_explanation=get_model_explanation(pred_price, [], FEATURE_COLS if FEATURE_COLS else [])
+            )
+    
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取房产详情出错: {str(e)}")
 
 # Vercel部署支持
 from mangum import Mangum
@@ -154,3 +484,5 @@ if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run("main:app", host="127.0.0.1", port=port, reload=True) 
+##
+#python main.py

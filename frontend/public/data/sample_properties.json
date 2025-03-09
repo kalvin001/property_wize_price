@@ -1,0 +1,197 @@
+[
+  {
+    "prop_id": "103360000387",
+    "address": "76 CENTRAL RD, BEVERLY HILLS NSW 2209",
+    "predicted_price": 1317539.75,
+    "actual_price": 1592000.0,
+    "error_percent": -17.239965452261306,
+    "top_features": [
+      {
+        "feature": "mainbuilding_bedrooms_area",
+        "value": 25.16,
+        "shap_value": -26700.32421875,
+        "is_positive": false
+      },
+      {
+        "feature": "luxury_level_score",
+        "value": 57.0,
+        "shap_value": -34443.5703125,
+        "is_positive": false
+      },
+      {
+        "feature": "prop_bath",
+        "value": 1.0,
+        "shap_value": -48654.6953125,
+        "is_positive": false
+      },
+      {
+        "feature": "internal_area",
+        "value": 86.15,
+        "shap_value": -93869.5390625,
+        "is_positive": false
+      },
+      {
+        "feature": "land_value",
+        "value": 877000.0,
+        "shap_value": -338389.5,
+        "is_positive": false
+      }
+    ]
+  },
+  {
+    "prop_id": "125650013851",
+    "address": "73 SILVER ST, MARRICKVILLE NSW 2204",
+    "predicted_price": 1518360.375,
+    "actual_price": 1715000.0,
+    "error_percent": -11.465867346938776,
+    "top_features": [
+      {
+        "feature": "region",
+        "value": 1.0,
+        "shap_value": 61987.31640625,
+        "is_positive": true
+      },
+      {
+        "feature": "prop_bath",
+        "value": 1.0,
+        "shap_value": -75415.6640625,
+        "is_positive": false
+      },
+      {
+        "feature": "sold_contract_date",
+        "value": 942.0,
+        "shap_value": 127288.7578125,
+        "is_positive": true
+      },
+      {
+        "feature": "internal_area",
+        "value": 62.57,
+        "shap_value": -142733.03125,
+        "is_positive": false
+      },
+      {
+        "feature": "land_value",
+        "value": 876000.0,
+        "shap_value": -349784.21875,
+        "is_positive": false
+      }
+    ]
+  },
+  {
+    "prop_id": "110150000544",
+    "address": "10 BENNETT RD, COLYTON NSW 2760",
+    "predicted_price": 874257.9375,
+    "actual_price": 850000.0,
+    "error_percent": 2.853875,
+    "top_features": [
+      {
+        "feature": "internal_area",
+        "value": 74.14,
+        "shap_value": -91491.703125,
+        "is_positive": false
+      },
+      {
+        "feature": "sector_median",
+        "value": 1008514.0,
+        "shap_value": -91909.90625,
+        "is_positive": false
+      },
+      {
+        "feature": "prop_x",
+        "value": 150.79399109,
+        "shap_value": -94920.296875,
+        "is_positive": false
+      },
+      {
+        "feature": "sold_contract_date",
+        "value": 825.0,
+        "shap_value": 112203.7109375,
+        "is_positive": true
+      },
+      {
+        "feature": "land_value",
+        "value": 505000.0,
+        "shap_value": -643494.75,
+        "is_positive": false
+      }
+    ]
+  },
+  {
+    "prop_id": "108420001632",
+    "address": "51 BRAND ST, CARLINGFORD NSW 2118",
+    "predicted_price": 2317938.5,
+    "actual_price": 1680000.0,
+    "error_percent": 37.97252976190476,
+    "top_features": [
+      {
+        "feature": "bedroom_without_bathroom_names",
+        "value": 0.0,
+        "shap_value": -58862.8828125,
+        "is_positive": false
+      },
+      {
+        "feature": "sold_contract_date",
+        "value": 122.0,
+        "shap_value": -87166.015625,
+        "is_positive": false
+      },
+      {
+        "feature": "luxury_level_score",
+        "value": 68.33,
+        "shap_value": 102325.671875,
+        "is_positive": true
+      },
+      {
+        "feature": "updated_date",
+        "value": 455.0,
+        "shap_value": -118809.6953125,
+        "is_positive": false
+      },
+      {
+        "feature": "land_value",
+        "value": 1500000.0,
+        "shap_value": 362257.71875,
+        "is_positive": true
+      }
+    ]
+  },
+  {
+    "prop_id": "143350000267",
+    "address": "15 GREENBANK DR, WERRINGTON DOWNS NSW 2747",
+    "predicted_price": 897800.6875,
+    "actual_price": 877000.0,
+    "error_percent": 2.3718001710376284,
+    "top_features": [
+      {
+        "feature": "luxury_level_score",
+        "value": 47.5,
+        "shap_value": -53310.65234375,
+        "is_positive": false
+      },
+      {
+        "feature": "locality_post",
+        "value": 2747.0,
+        "shap_value": -64147.1640625,
+        "is_positive": false
+      },
+      {
+        "feature": "prop_x",
+        "value": 150.73817444,
+        "shap_value": -89696.234375,
+        "is_positive": false
+      },
+      {
+        "feature": "sector_median",
+        "value": 924676.0,
+        "shap_value": -115084.0234375,
+        "is_positive": false
+      },
+      {
+        "feature": "land_value",
+        "value": 500000.0,
+        "shap_value": -673395.4375,
+        "is_positive": false
+      }
+    ]
+  }
+]

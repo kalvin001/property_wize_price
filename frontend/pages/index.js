@@ -1,5 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Head from 'next/head';
+import Link from 'next/link';
+import Router from 'next/router';
 import { 
   Layout, 
   Menu, 
@@ -12,7 +14,10 @@ import {
   Carousel, 
   Statistic, 
   Divider,
-  Space
+  Space,
+  message,
+  Spin,
+  Empty
 } from 'antd';
 import { 
   SearchOutlined, 
@@ -21,7 +26,10 @@ import {
   FileTextOutlined,
   CheckCircleOutlined,
   RocketOutlined,
-  BulbOutlined
+  BulbOutlined,
+  BookOutlined,
+  EnvironmentOutlined,
+  DollarOutlined
 } from '@ant-design/icons';
 
 const { Header, Content, Footer } = Layout;
@@ -30,6 +38,101 @@ const { Search } = Input;
 
 export default function Home() {
   const [searchValue, setSearchValue] = useState('');
+  const [searching, setSearching] = useState(false);
+  const [featuredProperties, setFeaturedProperties] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  // 获取精选房产示例
+  useEffect(() => {
+    const fetchFeaturedProperties = async () => {
+      setLoading(true);
+      try {
+        // 随机获取3个房产
+        const response = await fetch('/api/properties?page=1&page_size=3');
+        if (!response.ok) {
+          throw new Error('获取房产数据失败');
+        }
+        
+        const data = await response.json();
+        if (data.properties && data.properties.length > 0) {
+          setFeaturedProperties(data.properties.map(formatProperty));
+        }
+      } catch (error) {
+        console.error('获取精选房产失败:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    
+    fetchFeaturedProperties();
+  }, []);
+  
+  // 格式化房产数据
+  const formatProperty = (property) => {
+    const features = property.features || {};
+    
+    // 获取实际价格和预测价格
+    const actualPrice = features.y_label || 0;
+    const predictedPrice = property.predicted_price || 0;
+    
+    return {
+      id: property.prop_id,
+      address: property.address,
+      predicted_price: predictedPrice,
+      actual_price: actualPrice,
+      area: features.prop_area || features.land_size || 0,
+      beds: features.prop_bed || 0,
+      baths: features.prop_bath || 0,
+      type: features.prop_type || '',
+      locality: features.locality_name || ''
+    };
+  };
+
+  // 处理搜索
+  const handleSearch = async (value) => {
+    if (!value || value.trim() === '') {
+      message.warning('请输入房产地址或ID');
+      return;
+    }
+
+    setSearching(true);
+
+    try {
+      // 尝试查询ID直接跳转
+      if (value.toLowerCase().startsWith('prop-') || /^\d+$/.test(value)) {
+        // 如果像是ID格式，直接尝试跳转到详情页
+        const propId = value.toLowerCase().startsWith('prop-') ? value : `prop-${value}`;
+        Router.push(`/property-reports/${propId}`);
+        return;
+      }
+
+      // 否则执行搜索请求
+      const response = await fetch(`/api/properties?query=${encodeURIComponent(value)}&page_size=10`);
+      
+      if (!response.ok) {
+        throw new Error('搜索请求失败');
+      }
+      
+      const data = await response.json();
+      
+      if (data.properties && data.properties.length > 0) {
+        // 有结果，重定向到房产报告页面，保留搜索条件
+        Router.push({
+          pathname: '/property-reports',
+          query: { search: value }
+        });
+      } else {
+        // 无结果，也重定向到房产报告页面
+        message.info('未找到匹配的房产，显示所有房产');
+        Router.push('/property-reports');
+      }
+    } catch (error) {
+      console.error('搜索出错:', error);
+      message.error('搜索失败，请稍后再试');
+    } finally {
+      setSearching(false);
+    }
+  };
 
   return (
     <Layout className="layout">
@@ -52,17 +155,16 @@ export default function Home() {
           style={{ lineHeight: '64px' }}
           items={[
             { key: '1', label: '首页' },
-            { key: '2', label: '估价服务' },
-            { key: '3', label: '样本报告' },
-            { key: '4', label: '关于我们' },
+            { key: '2', label: <Link href="/model-evaluation">模型评估</Link> },
+            { key: '3', label: <Link href="/property-reports">房产报告</Link> },
           ]}
         />
       </Header>
 
       <Content style={{ padding: '0 50px', marginTop: 64 }}>
-        {/* 1. 宣传横幅 */}
+        {/* 1. 简化宣传横幅 */}
         <div className="hero-banner" style={{ 
-          height: '500px', 
+          height: '240px', 
           background: 'linear-gradient(135deg, #1890ff 0%, #001529 100%)',
           display: 'flex',
           alignItems: 'center',
@@ -80,67 +182,128 @@ export default function Home() {
           }}></div>
           <div style={{ 
             position: 'absolute',
-            width: '50%',
+            width: '80%',
             left: '10%',
             zIndex: 2,
-            color: 'white'
+            color: 'white',
+            textAlign: 'center'
           }}>
-            <Title style={{ color: 'white', fontSize: '48px', marginBottom: '20px' }}>
-              智能房产估价
-              <br />
-              让决策更有把握
+            <Title style={{ color: 'white', fontSize: '42px', marginBottom: '10px' }}>
+              智能房产估价 · 精准决策支持
             </Title>
-            <Paragraph style={{ color: 'white', fontSize: '18px', marginBottom: '30px' }}>
-              基于人工智能和大数据分析，PropertyWize提供准确的房产估价与详细的解释报告，
-              帮助您了解影响房价的每一个因素。
+            <Paragraph style={{ color: 'white', fontSize: '16px', marginBottom: '20px' }}>
+              PropertyWize基于AI和大数据，为您提供准确的房产估价与详细的解释报告
             </Paragraph>
-            <Space size="large">
-              <Button type="primary" size="large" style={{ height: '50px', fontSize: '16px', padding: '0 30px' }}>
-                开始估价
-              </Button>
-              <Button ghost size="large" style={{ height: '50px', fontSize: '16px', padding: '0 30px', color: 'white', borderColor: 'white' }}>
-                查看样本报告
+            <Space size="middle">
+              <Button type="primary" size="large" onClick={() => {
+                const element = document.getElementById('search-section');
+                if (element) element.scrollIntoView({ behavior: 'smooth' });
+              }}>开始估价</Button>
+              <Button ghost size="large" style={{ color: 'white', borderColor: 'white' }}>
+                <Link href="/property-reports" style={{ color: 'white' }}>查看房产报告</Link>
               </Button>
             </Space>
           </div>
-          <div style={{ 
-            position: 'absolute',
-            right: '-5%',
-            top: '50%',
-            transform: 'translateY(-50%)',
-            width: '55%',
-            height: '80%',
-            background: 'linear-gradient(45deg, #001529 0%, #1890ff 100%)',
-            borderRadius: '8px',
-            boxShadow: '0 10px 30px rgba(0,0,0,0.2)',
-            zIndex: 0
-          }}></div>
         </div>
 
-        {/* 2. 搜索区域 */}
-        <div style={{ textAlign: 'center', margin: '60px 0' }}>
-          <Title level={2}>查询您的房产估价报告</Title>
+        {/* 3. 搜索区域 */}
+        <div id="search-section" style={{ textAlign: 'center', margin: '60px 0', background: '#f9f9f9', padding: '30px', borderRadius: '8px' }}>
+          <Title level={2}>查询房产估价</Title>
           <Paragraph style={{ fontSize: '16px', marginBottom: '30px' }}>
-            输入报告ID或地址查询已生成的估价报告
+            输入房产地址或ID，查询现有报告或生成新的估价报告
           </Paragraph>
           <Row justify="center">
             <Col xs={24} sm={24} md={16} lg={12} xl={8}>
               <Search
-                placeholder="输入报告ID或房产地址"
-                enterButton="搜索报告"
+                placeholder="输入房产地址或ID"
+                enterButton="查询估价"
                 size="large"
                 value={searchValue}
                 onChange={(e) => setSearchValue(e.target.value)}
-                onSearch={(value) => console.log(value)}
+                onSearch={handleSearch}
+                loading={searching}
                 style={{ width: '100%' }}
               />
             </Col>
           </Row>
         </div>
 
-        {/* 3. 我们的优势 */}
-        <div style={{ margin: '80px 0' }}>
-          <Title level={2} style={{ textAlign: 'center', marginBottom: '50px' }}>为什么选择 PropertyWize</Title>
+        {/* 2. 真实房产展示 */}
+        <div style={{ margin: '60px 0' }}>
+          <Title level={2} style={{ textAlign: 'center', marginBottom: '20px' }}>精选房产估价案例</Title>
+          <Paragraph style={{ textAlign: 'center', fontSize: '16px', marginBottom: '40px' }}>
+            以下展示的是真实房产的AI估价案例，点击查看详细的价格影响因素分析
+          </Paragraph>
+          
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '40px 0' }}>
+              <Spin size="large" />
+              <p style={{ marginTop: 16 }}>加载房产数据...</p>
+            </div>
+          ) : featuredProperties.length === 0 ? (
+            <Empty description="暂无房产案例数据" />
+          ) : (
+            <Row gutter={[24, 24]}>
+              {featuredProperties.map(property => (
+                <Col xs={24} sm={12} md={8} key={property.id}>
+                  <Card
+                    hoverable
+                    cover={<div style={{ 
+                      height: '200px', 
+                      background: '#f0f5ff',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center'
+                    }}>
+                      <FileTextOutlined style={{ fontSize: '64px', color: '#1890ff' }} />
+                    </div>}
+                  >
+                    <Card.Meta
+                      title={
+                        <div style={{whiteSpace: 'normal', height: '48px', overflow: 'hidden', textOverflow: 'ellipsis'}}>
+                          {property.address}
+                        </div>
+                      }
+                      description={
+                        <div>
+                          <div style={{ marginBottom: '8px' }}>
+                            <EnvironmentOutlined style={{ marginRight: '4px' }} />
+                            {property.locality || '未知区域'}
+                            {property.type && ` | ${property.type}`}
+                          </div>
+                          <div>
+                            {property.area > 0 && `${property.area}m² | `}
+                            {property.beds > 0 && `${property.beds}室`}
+                            {property.baths > 0 && `${property.baths}卫`}
+                          </div>
+                          <div style={{ marginTop: '8px', fontWeight: 'bold', color: '#1890ff' }}>
+                            <DollarOutlined style={{ marginRight: '4px' }} />
+                            估价: A${(property.predicted_price / 10000).toFixed(0)}万
+                          </div>
+                        </div>
+                      }
+                    />
+                    <Link href={`/property-reports/${property.id}`}>
+                      <Button type="link" style={{ padding: 0, marginTop: '15px' }}>
+                        查看详情 →
+                      </Button>
+                    </Link>
+                  </Card>
+                </Col>
+              ))}
+            </Row>
+          )}
+          
+          <div style={{ textAlign: 'center', marginTop: '30px' }}>
+            <Link href="/property-reports">
+              <Button type="primary">查看更多房产报告</Button>
+            </Link>
+          </div>
+        </div>
+
+        {/* 4. 我们的优势 */}
+        <div style={{ margin: '60px 0' }}>
+          <Title level={2} style={{ textAlign: 'center', marginBottom: '40px' }}>为什么选择 PropertyWize</Title>
           
           <Row gutter={[32, 32]}>
             <Col xs={24} sm={12} md={8}>
@@ -184,15 +347,15 @@ export default function Home() {
           </Row>
         </div>
 
-        {/* 4. 数据统计 */}
+        {/* 5. 数据统计 */}
         <div style={{ 
-          margin: '80px 0', 
-          padding: '60px 0',
+          margin: '60px 0', 
+          padding: '40px 0',
           background: '#f0f5ff',
           borderRadius: '8px',
           textAlign: 'center'
         }}>
-          <Title level={2} style={{ marginBottom: '60px' }}>可信赖的房产估价服务</Title>
+          <Title level={2} style={{ marginBottom: '40px' }}>可信赖的房产估价服务</Title>
           
           <Row gutter={[48, 48]} justify="center">
             <Col xs={24} sm={12} md={6}>
@@ -214,89 +377,10 @@ export default function Home() {
           </Row>
         </div>
 
-        {/* 5. 样本报告展示 */}
-        <div style={{ margin: '80px 0' }}>
-          <Title level={2} style={{ textAlign: 'center', marginBottom: '20px' }}>样本报告展示</Title>
-          <Paragraph style={{ textAlign: 'center', fontSize: '16px', marginBottom: '40px' }}>
-            查看我们的样本报告，了解PropertyWize如何分析房产价值
-          </Paragraph>
-          
-          <Row gutter={[24, 24]}>
-            <Col xs={24} sm={24} md={8}>
-              <Card
-                hoverable
-                cover={<div style={{ 
-                  height: '200px', 
-                  background: '#f0f5ff',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center'
-                }}>
-                  <FileTextOutlined style={{ fontSize: '64px', color: '#1890ff' }} />
-                </div>}
-              >
-                <Card.Meta
-                  title="公寓型房产估价报告"
-                  description="市中心两室一厅公寓的详细估价分析"
-                />
-                <Button type="link" style={{ padding: 0, marginTop: '15px' }}>
-                  查看样本 →
-                </Button>
-              </Card>
-            </Col>
-            
-            <Col xs={24} sm={24} md={8}>
-              <Card
-                hoverable
-                cover={<div style={{ 
-                  height: '200px', 
-                  background: '#f0f5ff',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center'
-                }}>
-                  <FileTextOutlined style={{ fontSize: '64px', color: '#1890ff' }} />
-                </div>}
-              >
-                <Card.Meta
-                  title="别墅型房产估价报告"
-                  description="郊区独栋别墅的详细估价分析"
-                />
-                <Button type="link" style={{ padding: 0, marginTop: '15px' }}>
-                  查看样本 →
-                </Button>
-              </Card>
-            </Col>
-            
-            <Col xs={24} sm={24} md={8}>
-              <Card
-                hoverable
-                cover={<div style={{ 
-                  height: '200px', 
-                  background: '#f0f5ff',
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center'
-                }}>
-                  <FileTextOutlined style={{ fontSize: '64px', color: '#1890ff' }} />
-                </div>}
-              >
-                <Card.Meta
-                  title="商业地产估价报告"
-                  description="商业地产投资价值分析报告"
-                />
-                <Button type="link" style={{ padding: 0, marginTop: '15px' }}>
-                  查看样本 →
-                </Button>
-              </Card>
-            </Col>
-          </Row>
-        </div>
-
         {/* 6. 行动召唤 */}
         <div style={{ 
-          margin: '80px 0', 
-          padding: '60px',
+          margin: '60px 0', 
+          padding: '40px',
           background: 'linear-gradient(135deg, #f6ffed 0%, #e6f7ff 100%)',
           borderRadius: '8px',
           textAlign: 'center'
@@ -306,9 +390,10 @@ export default function Home() {
             无论您是准备购买、出售房产，还是希望了解当前房产的市场价值，
             PropertyWize都能为您提供准确、透明的房产估价服务。
           </Paragraph>
-          <Button type="primary" size="large" style={{ height: '50px', fontSize: '16px', padding: '0 40px' }}>
-            立即开始
-          </Button>
+          <Button type="primary" size="large" onClick={() => {
+            const element = document.getElementById('search-section');
+            if (element) element.scrollIntoView({ behavior: 'smooth' });
+          }}>立即开始</Button>
         </div>
       </Content>
 
@@ -323,9 +408,9 @@ export default function Home() {
           <Col xs={24} sm={12} md={8}>
             <Title level={4} style={{ color: 'white' }}>快速链接</Title>
             <div style={{ display: 'flex', flexDirection: 'column' }}>
-              <a href="#" style={{ color: '#ccc', marginBottom: '10px' }}>首页</a>
-              <a href="#" style={{ color: '#ccc', marginBottom: '10px' }}>估价服务</a>
-              <a href="#" style={{ color: '#ccc', marginBottom: '10px' }}>样本报告</a>
+              <Link href="/" style={{ color: '#ccc', marginBottom: '10px' }}>首页</Link>
+              <Link href="/model-evaluation" style={{ color: '#ccc', marginBottom: '10px' }}>模型评估</Link>
+              <Link href="/property-reports" style={{ color: '#ccc', marginBottom: '10px' }}>房产报告</Link>
               <a href="#" style={{ color: '#ccc' }}>联系我们</a>
             </div>
           </Col>
@@ -334,7 +419,7 @@ export default function Home() {
             <Paragraph style={{ color: '#ccc' }}>
               邮箱: info@propertywize.com<br />
               电话: (021) 1234-5678<br />
-              地址: 上海市浦东新区科技园区
+              地址: 杭州市高新区
             </Paragraph>
           </Col>
         </Row>

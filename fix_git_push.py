@@ -14,7 +14,7 @@ def run_command(command):
             print(result.stdout)
         if result.stderr:
             print(f"错误: {result.stderr}")
-        return result.returncode == 0
+        return bool(result.returncode == 0)
     except Exception as e:
         print(f"命令执行出错: {str(e)}")
         return False

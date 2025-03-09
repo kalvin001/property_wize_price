@@ -182,12 +182,49 @@ with open('frontend/public/data/sample_properties.json', 'w') as f:
 
 # 保存模型评估指标
 model_metrics = {
-    'xgboost': {
-        'rmse': float(xgb_rmse),
-        'mae': float(xgb_mae),
-        'r2': float(xgb_r2)
-    }
+    'rmse': float(xgb_rmse),
+    'mae': float(xgb_mae),
+    'r2_score': float(xgb_r2),
+    'mse': float(xgb_mse),
+    'median_ae': float(np.median(np.abs(y_test - xgb_pred))),
+    'explained_variance': float(np.var(y_test - xgb_pred) / np.var(y_test)),
+    
+    # 保存预测值和实际值（转换为列表以便JSON序列化）
+    'predictions': xgb_pred.tolist(),
+    'actual': y_test.tolist(),
+    
+    # 计算中位百分比误差和平均百分比误差
+    'median_percentage_error': float(np.median(np.abs((xgb_pred - y_test) / y_test) * 100)),
+    'mean_percentage_error': float(np.mean(np.abs((xgb_pred - y_test) / y_test) * 100)),
+    
+    # 计算误差分布
+    'error_distribution': {
+        'percentiles': {
+            'p10': float(np.percentile(np.abs((xgb_pred - y_test) / y_test) * 100, 10)),
+            'p25': float(np.percentile(np.abs((xgb_pred - y_test) / y_test) * 100, 25)),
+            'p50': float(np.percentile(np.abs((xgb_pred - y_test) / y_test) * 100, 50)),
+            'p75': float(np.percentile(np.abs((xgb_pred - y_test) / y_test) * 100, 75)),
+            'p90': float(np.percentile(np.abs((xgb_pred - y_test) / y_test) * 100, 90))
+        },
+        'error_ranges': {
+            '<5%': float(np.mean(np.abs((xgb_pred - y_test) / y_test) * 100 < 5)),
+            '5-10%': float(np.mean((np.abs((xgb_pred - y_test) / y_test) * 100 >= 5) & (np.abs((xgb_pred - y_test) / y_test) * 100 < 10))),
+            '10-15%': float(np.mean((np.abs((xgb_pred - y_test) / y_test) * 100 >= 10) & (np.abs((xgb_pred - y_test) / y_test) * 100 < 15))),
+            '15-20%': float(np.mean((np.abs((xgb_pred - y_test) / y_test) * 100 >= 15) & (np.abs((xgb_pred - y_test) / y_test) * 100 < 20))),
+            '>20%': float(np.mean(np.abs((xgb_pred - y_test) / y_test) * 100 >= 20))
+        }
+    },
+    
+    # 添加特征重要性
+    'feature_importance': [{
+        'feature': feature,
+        'importance': float(importance)
+    } for feature, importance in zip(
+        feature_importance['feature'].head(20), 
+        feature_importance['importance'].head(20)
+    )]
 }
+
 with open('frontend/public/data/model_metrics.json', 'w') as f:
     json.dump(model_metrics, f, indent=2)
 

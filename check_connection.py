@@ -13,7 +13,7 @@ def check_port(host, port):
     sock.settimeout(2)
     result = sock.connect_ex((host, port))
     sock.close()
-    return result == 0
+    return bool(result == 0)
 
 def check_service(url, service_name):
     """检查服务是否正常响应"""
