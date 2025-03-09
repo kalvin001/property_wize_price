@@ -1,122 +1,122 @@
 [
   {
     "feature": "land_value",
-    "mean_abs_shap": 550918.0625,
-    "min_shap": -811940.875,
-    "max_shap": 5046571.0
-  },
-  {
-    "feature": "internal_area",
-    "mean_abs_shap": 105562.078125,
-    "min_shap": -182633.21875,
-    "max_shap": 731627.8125
-  },
-  {
-    "feature": "sold_contract_date",
-    "mean_abs_shap": 77509.5234375,
-    "min_shap": -165502.109375,
-    "max_shap": 208148.4375
-  },
-  {
-    "feature": "prop_x",
-    "mean_abs_shap": 76944.15625,
-    "min_shap": -109886.3203125,
-    "max_shap": 378948.9375
-  },
-  {
-    "feature": "luxury_level_score",
-    "mean_abs_shap": 75419.5234375,
-    "min_shap": -197509.375,
-    "max_shap": 504658.125
+    "mean_abs_shap": 693169.125,
+    "min_shap": -768463.25,
+    "max_shap": 7436817.5
   },
   {
     "feature": "sector_median",
-    "mean_abs_shap": 73398.625,
-    "min_shap": -120960.4921875,
-    "max_shap": 226684.0625
+    "mean_abs_shap": 156625.125,
+    "min_shap": -321770.40625,
+    "max_shap": 859338.4375
+  },
+  {
+    "feature": "internal_area",
+    "mean_abs_shap": 88232.828125,
+    "min_shap": -125328.6484375,
+    "max_shap": 783115.5
+  },
+  {
+    "feature": "sold_contract_date",
+    "mean_abs_shap": 83835.53125,
+    "min_shap": -194650.328125,
+    "max_shap": 248360.484375
+  },
+  {
+    "feature": "luxury_level_score",
+    "mean_abs_shap": 71387.3125,
+    "min_shap": -195323.203125,
+    "max_shap": 438119.375
+  },
+  {
+    "feature": "prop_x",
+    "mean_abs_shap": 46941.80859375,
+    "min_shap": -60466.01171875,
+    "max_shap": 322713.375
   },
   {
     "feature": "prop_bath",
-    "mean_abs_shap": 55236.4609375,
-    "min_shap": -90155.6171875,
-    "max_shap": 1138187.375
+    "mean_abs_shap": 42049.703125,
+    "min_shap": -101420.5859375,
+    "max_shap": 177394.53125
   },
   {
     "feature": "locality_post",
-    "mean_abs_shap": 54941.2734375,
-    "min_shap": -137818.203125,
-    "max_shap": 186510.84375
+    "mean_abs_shap": 40339.04296875,
+    "min_shap": -101500.453125,
+    "max_shap": 307275.40625
   },
   {
     "feature": "mainbuilding_bedrooms_area",
-    "mean_abs_shap": 30470.5859375,
-    "min_shap": -68805.2890625,
-    "max_shap": 146202.65625
+    "mean_abs_shap": 37926.6875,
+    "min_shap": -93213.1875,
+    "max_shap": 179110.875
   },
   {
     "feature": "garage_area",
-    "mean_abs_shap": 29976.068359375,
-    "min_shap": -79254.1484375,
-    "max_shap": 88816.671875
-  },
-  {
-    "feature": "outdoor_swimming_pool_cnt",
-    "mean_abs_shap": 22197.79296875,
-    "min_shap": -60374.80859375,
-    "max_shap": 109869.9453125
+    "mean_abs_shap": 35790.8671875,
+    "min_shap": -60353.09765625,
+    "max_shap": 314773.4375
   },
   {
     "feature": "region",
-    "mean_abs_shap": 22079.6015625,
-    "min_shap": -97940.015625,
-    "max_shap": 210653.15625
+    "mean_abs_shap": 32134.494140625,
+    "min_shap": -38841.8359375,
+    "max_shap": 148594.703125
+  },
+  {
+    "feature": "outdoor_swimming_pool_cnt",
+    "mean_abs_shap": 27174.19921875,
+    "min_shap": -40592.33984375,
+    "max_shap": 193370.84375
   },
   {
     "feature": "sector_code",
-    "mean_abs_shap": 18466.525390625,
-    "min_shap": -58058.5703125,
-    "max_shap": 100840.5234375
-  },
-  {
-    "feature": "land_size",
-    "mean_abs_shap": 14456.1279296875,
-    "min_shap": -52237.7734375,
-    "max_shap": 252954.46875
+    "mean_abs_shap": 21253.10546875,
+    "min_shap": -40852.2578125,
+    "max_shap": 203573.28125
   },
   {
     "feature": "prop_bed",
-    "mean_abs_shap": 14104.43359375,
-    "min_shap": -54433.55859375,
-    "max_shap": 33473.85546875
-  },
-  {
-    "feature": "luxury_level_desc_score",
-    "mean_abs_shap": 13799.0947265625,
-    "min_shap": -67287.3203125,
-    "max_shap": 129359.8125
-  },
-  {
-    "feature": "updated_date",
-    "mean_abs_shap": 13470.0634765625,
-    "min_shap": -118809.6953125,
-    "max_shap": 2296.59130859375
+    "mean_abs_shap": 20060.921875,
+    "min_shap": -99905.265625,
+    "max_shap": 80516.0546875
   },
   {
     "feature": "view_quality",
-    "mean_abs_shap": 10708.26953125,
-    "min_shap": -28005.20703125,
-    "max_shap": 218803.34375
+    "mean_abs_shap": 17228.314453125,
+    "min_shap": -231158.53125,
+    "max_shap": 164877.5625
   },
   {
-    "feature": "levels_cnt",
-    "mean_abs_shap": 9588.0908203125,
-    "min_shap": -28485.654296875,
-    "max_shap": 77001.671875
+    "feature": "land_size",
+    "mean_abs_shap": 14927.349609375,
+    "min_shap": -29565.9140625,
+    "max_shap": 176661.40625
   },
   {
-    "feature": "famous_designer",
-    "mean_abs_shap": 8990.4794921875,
-    "min_shap": -28422.060546875,
-    "max_shap": 318420.09375
+    "feature": "updated_date",
+    "mean_abs_shap": 13223.4638671875,
+    "min_shap": -171301.796875,
+    "max_shap": 3206.510498046875
+  },
+  {
+    "feature": "weather_board",
+    "mean_abs_shap": 12111.9228515625,
+    "min_shap": -68588.6875,
+    "max_shap": 15387.787109375
+  },
+  {
+    "feature": "main_building_bedroom_avg_area",
+    "mean_abs_shap": 11597.041015625,
+    "min_shap": -68990.640625,
+    "max_shap": 104961.84375
+  },
+  {
+    "feature": "development_opportunity",
+    "mean_abs_shap": 11145.8525390625,
+    "min_shap": -60683.26953125,
+    "max_shap": 56458.82421875
   }
 ]

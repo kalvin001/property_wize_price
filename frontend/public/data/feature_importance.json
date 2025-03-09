@@ -1,82 +1,82 @@
 [
   {
     "feature": "land_value",
-    "importance": 0.26802030205726624
-  },
-  {
-    "feature": "internal_area",
-    "importance": 0.05257238447666168
-  },
-  {
-    "feature": "locality_post",
-    "importance": 0.033937353640794754
-  },
-  {
-    "feature": "region",
-    "importance": 0.03228461369872093
-  },
-  {
-    "feature": "prop_bath",
-    "importance": 0.03130389377474785
-  },
-  {
-    "feature": "prop_x",
-    "importance": 0.029178736731410027
-  },
-  {
-    "feature": "luxury_level_score",
-    "importance": 0.02857988327741623
+    "importance": 0.29251641035079956
   },
   {
     "feature": "sector_median",
-    "importance": 0.022327100858092308
+    "importance": 0.04967435076832771
+  },
+  {
+    "feature": "internal_area",
+    "importance": 0.04117468371987343
+  },
+  {
+    "feature": "prop_bath",
+    "importance": 0.038408875465393066
+  },
+  {
+    "feature": "luxury_level_score",
+    "importance": 0.03720539063215256
   },
   {
     "feature": "view_quality",
-    "importance": 0.018629824742674828
-  },
-  {
-    "feature": "da_cdc_approval",
-    "importance": 0.015184005722403526
-  },
-  {
-    "feature": "mainbuilding_bedrooms_area",
-    "importance": 0.013875029049813747
-  },
-  {
-    "feature": "luxury_level_desc_score",
-    "importance": 0.01332797110080719
-  },
-  {
-    "feature": "cul_de_sac",
-    "importance": 0.012966661714017391
-  },
-  {
-    "feature": "levels_cnt",
-    "importance": 0.012640096247196198
-  },
-  {
-    "feature": "sector_code",
-    "importance": 0.012200486846268177
-  },
-  {
-    "feature": "land_size",
-    "importance": 0.011740078218281269
-  },
-  {
-    "feature": "balcony_area",
-    "importance": 0.011176016181707382
-  },
-  {
-    "feature": "luxury_level",
-    "importance": 0.01099919993430376
+    "importance": 0.0335986465215683
   },
   {
     "feature": "near_park",
-    "importance": 0.01065834891051054
+    "importance": 0.01863318309187889
+  },
+  {
+    "feature": "indoor_swimming_pool_cnt",
+    "importance": 0.015498575754463673
+  },
+  {
+    "feature": "mainbuilding_bedrooms_area",
+    "importance": 0.01180901750922203
+  },
+  {
+    "feature": "gym_cnt",
+    "importance": 0.011778815649449825
+  },
+  {
+    "feature": "luxury_level_desc_score",
+    "importance": 0.011506656184792519
+  },
+  {
+    "feature": "luxury_level",
+    "importance": 0.01119624450802803
+  },
+  {
+    "feature": "entertaining_space_cnt",
+    "importance": 0.011065755970776081
+  },
+  {
+    "feature": "famous_designer",
+    "importance": 0.010080668143928051
+  },
+  {
+    "feature": "levels_cnt",
+    "importance": 0.010040218010544777
+  },
+  {
+    "feature": "sector_code",
+    "importance": 0.009829833172261715
+  },
+  {
+    "feature": "construction_year_guess",
+    "importance": 0.009648790583014488
+  },
+  {
+    "feature": "land_size",
+    "importance": 0.009476039558649063
+  },
+  {
+    "feature": "locality_post",
+    "importance": 0.009285574778914452
   },
   {
     "feature": "living_space_area",
-    "importance": 0.01050923764705658
+    "importance": 0.009270657785236835
   }
 ]

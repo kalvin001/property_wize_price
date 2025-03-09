@@ -1,195 +1,195 @@
 [
   {
-    "prop_id": "103360000387",
-    "address": "76 CENTRAL RD, BEVERLY HILLS NSW 2209",
-    "predicted_price": 1317539.75,
-    "actual_price": 1592000.0,
-    "error_percent": -17.239965452261306,
+    "prop_id": "103390006056",
+    "address": "88 WOLSELEY ST, BEXLEY NSW 2207",
+    "predicted_price": 1849716.875,
+    "actual_price": 1472000.0,
+    "error_percent": 25.66011379076087,
     "top_features": [
       {
-        "feature": "mainbuilding_bedrooms_area",
-        "value": 25.16,
-        "shap_value": -26700.32421875,
+        "feature": "internal_area",
+        "value": 120.59,
+        "shap_value": -41990.0703125,
         "is_positive": false
       },
       {
         "feature": "luxury_level_score",
-        "value": 57.0,
-        "shap_value": -34443.5703125,
-        "is_positive": false
-      },
-      {
-        "feature": "prop_bath",
-        "value": 1.0,
-        "shap_value": -48654.6953125,
-        "is_positive": false
-      },
-      {
-        "feature": "internal_area",
-        "value": 86.15,
-        "shap_value": -93869.5390625,
-        "is_positive": false
-      },
-      {
-        "feature": "land_value",
-        "value": 877000.0,
-        "shap_value": -338389.5,
-        "is_positive": false
-      }
-    ]
-  },
-  {
-    "prop_id": "125650013851",
-    "address": "73 SILVER ST, MARRICKVILLE NSW 2204",
-    "predicted_price": 1518360.375,
-    "actual_price": 1715000.0,
-    "error_percent": -11.465867346938776,
-    "top_features": [
-      {
-        "feature": "region",
-        "value": 1.0,
-        "shap_value": 61987.31640625,
-        "is_positive": true
-      },
-      {
-        "feature": "prop_bath",
-        "value": 1.0,
-        "shap_value": -75415.6640625,
-        "is_positive": false
-      },
-      {
-        "feature": "sold_contract_date",
-        "value": 942.0,
-        "shap_value": 127288.7578125,
-        "is_positive": true
-      },
-      {
-        "feature": "internal_area",
-        "value": 62.57,
-        "shap_value": -142733.03125,
-        "is_positive": false
-      },
-      {
-        "feature": "land_value",
-        "value": 876000.0,
-        "shap_value": -349784.21875,
-        "is_positive": false
-      }
-    ]
-  },
-  {
-    "prop_id": "110150000544",
-    "address": "10 BENNETT RD, COLYTON NSW 2760",
-    "predicted_price": 874257.9375,
-    "actual_price": 850000.0,
-    "error_percent": 2.853875,
-    "top_features": [
-      {
-        "feature": "internal_area",
-        "value": 74.14,
-        "shap_value": -91491.703125,
+        "value": 60.0,
+        "shap_value": -65790.6875,
         "is_positive": false
       },
       {
         "feature": "sector_median",
-        "value": 1008514.0,
-        "shap_value": -91909.90625,
-        "is_positive": false
-      },
-      {
-        "feature": "prop_x",
-        "value": 150.79399109,
-        "shap_value": -94920.296875,
-        "is_positive": false
+        "value": 1833360.0,
+        "shap_value": 67146.1640625,
+        "is_positive": true
       },
       {
         "feature": "sold_contract_date",
-        "value": 825.0,
-        "shap_value": 112203.7109375,
+        "value": 991.0,
+        "shap_value": 167385.5,
         "is_positive": true
       },
       {
         "feature": "land_value",
-        "value": 505000.0,
-        "shap_value": -643494.75,
+        "value": 1050000.0,
+        "shap_value": -206325.265625,
         "is_positive": false
       }
     ]
   },
   {
-    "prop_id": "108420001632",
-    "address": "51 BRAND ST, CARLINGFORD NSW 2118",
-    "predicted_price": 2317938.5,
-    "actual_price": 1680000.0,
-    "error_percent": 37.97252976190476,
+    "prop_id": "105390000101",
+    "address": "2 ANGOURIE PL, BOW BOWING NSW 2566",
+    "predicted_price": 902484.0,
+    "actual_price": 1040000.0,
+    "error_percent": -13.222692307692308,
     "top_features": [
       {
-        "feature": "bedroom_without_bathroom_names",
-        "value": 0.0,
-        "shap_value": -58862.8828125,
-        "is_positive": false
-      },
-      {
-        "feature": "sold_contract_date",
-        "value": 122.0,
-        "shap_value": -87166.015625,
-        "is_positive": false
-      },
-      {
-        "feature": "luxury_level_score",
-        "value": 68.33,
-        "shap_value": 102325.671875,
+        "feature": "mainbuilding_bedrooms_area",
+        "value": 77.68,
+        "shap_value": 65367.875,
         "is_positive": true
       },
       {
         "feature": "updated_date",
-        "value": 455.0,
-        "shap_value": -118809.6953125,
+        "value": 364.0,
+        "shap_value": -132585.28125,
+        "is_positive": false
+      },
+      {
+        "feature": "sold_contract_date",
+        "value": 272.0,
+        "shap_value": -143223.40625,
+        "is_positive": false
+      },
+      {
+        "feature": "sector_median",
+        "value": 909303.0,
+        "shap_value": -256695.828125,
         "is_positive": false
       },
       {
         "feature": "land_value",
-        "value": 1500000.0,
-        "shap_value": 362257.71875,
+        "value": 566000.0,
+        "shap_value": -725304.8125,
+        "is_positive": false
+      }
+    ]
+  },
+  {
+    "prop_id": "131720002388",
+    "address": "12 RADISICH LOOP, ORAN PARK NSW 2570",
+    "predicted_price": 947599.0,
+    "actual_price": 1020000.0,
+    "error_percent": -7.09813725490196,
+    "top_features": [
+      {
+        "feature": "prop_x",
+        "value": 150.7278595,
+        "shap_value": 44036.57421875,
+        "is_positive": true
+      },
+      {
+        "feature": "luxury_level_score",
+        "value": 55.0,
+        "shap_value": -57088.02734375,
+        "is_positive": false
+      },
+      {
+        "feature": "sold_contract_date",
+        "value": 255.0,
+        "shap_value": -97480.9375,
+        "is_positive": false
+      },
+      {
+        "feature": "sector_median",
+        "value": 1071069.0,
+        "shap_value": -274207.15625,
+        "is_positive": false
+      },
+      {
+        "feature": "land_value",
+        "value": 561000.0,
+        "shap_value": -660109.6875,
+        "is_positive": false
+      }
+    ]
+  },
+  {
+    "prop_id": "130650000015",
+    "address": "22 BAILEY CRES, NORTH EPPING NSW 2121",
+    "predicted_price": 1956085.375,
+    "actual_price": 2235000.0,
+    "error_percent": -12.479401565995525,
+    "top_features": [
+      {
+        "feature": "luxury_level_score",
+        "value": 55.0,
+        "shap_value": -72806.9296875,
+        "is_positive": false
+      },
+      {
+        "feature": "internal_area",
+        "value": 109.96,
+        "shap_value": -77221.828125,
+        "is_positive": false
+      },
+      {
+        "feature": "sector_median",
+        "value": 2499565.0,
+        "shap_value": 78989.109375,
+        "is_positive": true
+      },
+      {
+        "feature": "sold_contract_date",
+        "value": 252.0,
+        "shap_value": -138325.46875,
+        "is_positive": false
+      },
+      {
+        "feature": "land_value",
+        "value": 1550000.0,
+        "shap_value": 334107.3125,
         "is_positive": true
       }
     ]
   },
   {
-    "prop_id": "143350000267",
-    "address": "15 GREENBANK DR, WERRINGTON DOWNS NSW 2747",
-    "predicted_price": 897800.6875,
-    "actual_price": 877000.0,
-    "error_percent": 2.3718001710376284,
+    "prop_id": "137380001558",
+    "address": "2 HEYWOOD GLEN, STANHOPE GARDENS NSW 2768",
+    "predicted_price": 1658959.0,
+    "actual_price": 1605000.0,
+    "error_percent": 3.3619314641744547,
     "top_features": [
       {
         "feature": "luxury_level_score",
-        "value": 47.5,
-        "shap_value": -53310.65234375,
-        "is_positive": false
-      },
-      {
-        "feature": "locality_post",
-        "value": 2747.0,
-        "shap_value": -64147.1640625,
-        "is_positive": false
+        "value": 64.29,
+        "shap_value": 36244.51953125,
+        "is_positive": true
       },
       {
         "feature": "prop_x",
-        "value": 150.73817444,
-        "shap_value": -89696.234375,
+        "value": 150.93473816,
+        "shap_value": -51374.95703125,
         "is_positive": false
       },
       {
         "feature": "sector_median",
-        "value": 924676.0,
-        "shap_value": -115084.0234375,
+        "value": 1522634.0,
+        "shap_value": -67442.484375,
         "is_positive": false
       },
       {
+        "feature": "building_age",
+        "value": 3.0,
+        "shap_value": 69595.8515625,
+        "is_positive": true
+      },
+      {
         "feature": "land_value",
-        "value": 500000.0,
-        "shap_value": -673395.4375,
+        "value": 870000.0,
+        "shap_value": -376629.65625,
         "is_positive": false
       }
     ]

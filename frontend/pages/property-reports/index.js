@@ -363,7 +363,9 @@ export default function PropertyReports() {
               {totalCount > pageSize && (
                 <div style={{ textAlign: 'center', marginTop: '30px' }}>
                   <Pagination 
-                    current
+                    current={currentPage}
+                    total={totalCount}
+                    pageSize={pageSize}
                     onChange={handlePageChange}
                     showSizeChanger={false}
                     showQuickJumper
