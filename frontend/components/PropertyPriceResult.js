@@ -82,7 +82,7 @@ const PropertyPriceResult = ({ property }) => {
         </>
       )}
       
-      {property.area > 0 && (
+      {/* {property.area > 0 && (
         <div style={{ marginTop: '16px' }}>
           <Statistic
             title="单价"
@@ -94,7 +94,7 @@ const PropertyPriceResult = ({ property }) => {
             }}
           />
         </div>
-      )}
+      )} */}
     </Card>
   );
 };

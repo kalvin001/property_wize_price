@@ -178,7 +178,7 @@ def main():
 '''
 npm run dev 后台启动
 nohup npm run dev & 
-nohup python3 backend/main.py &
+nohup python3 main.py &
 
 '''
 if __name__ == "__main__":
