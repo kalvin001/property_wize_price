@@ -24,6 +24,15 @@ const nextConfig = {
     'rc-picker'
   ],
   
+  // 图像优化配置
+  images: {
+    domains: ['localhost'],
+    deviceSizes: [640, 750, 828, 1080, 1200, 1920],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    minimumCacheTTL: 60,
+    formats: ['image/webp'],
+  },
+  
   // 添加API请求代理配置
   async rewrites() {
     return [
@@ -62,6 +71,12 @@ const nextConfig = {
     ];
     
     return config;
+  },
+  
+  // 优化构建配置
+  experimental: {
+    optimizeCss: true, // CSS优化，现在已安装critters包
+    scrollRestoration: true, // 启用滚动恢复
   }
 };
 

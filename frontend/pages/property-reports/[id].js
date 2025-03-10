@@ -554,7 +554,7 @@ export default function PropertyDetail() {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
             <Title level={2}>{property.address}</Title>
             <Space>
-              <Button type="primary" icon={<ExportOutlined />} onClick={exportToPdf}>导出PDF报告</Button>
+              {/* <Button type="primary" icon={<ExportOutlined />} onClick={exportToPdf}>导出PDF报告</Button> */}
               <Button type="default" icon={<ArrowLeftOutlined />}>
                 <Link href="/property-reports">返回列表</Link>
               </Button>
