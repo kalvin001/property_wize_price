@@ -1,7 +1,7 @@
 from fastapi import FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse, FileResponse, Response
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, ConfigDict
 from typing import List, Dict, Any, Optional, Callable, Type, TypeVar
 import os
 import pandas as pd
@@ -65,14 +65,16 @@ class NumpyBaseModel(BaseModel):
     def validate_numpy_types(cls, v):
         return cls._convert_numpy_types(v)
     
-    model_config = {
-        'arbitrary_types_allowed': True,
-        'json_encoders': {
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+        json_encoders={
             np.integer: lambda v: int(v),
+            np.int64: lambda v: int(v),     # 针对 np.int64 的序列化
             np.floating: lambda v: float(v),
+            np.float64: lambda v: float(v),   # 针对 np.float64 的序列化
             np.ndarray: lambda v: v.tolist()
         }
-    }
+    )
 
 app = FastAPI(title="房产估价API")
 
