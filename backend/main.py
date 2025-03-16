@@ -111,10 +111,21 @@ class PredictionResult(NumpyBaseModel):
 base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 model_dir = os.path.join(base_dir, 'model')
 MODEL_PATH = Path(os.path.join(model_dir, "xgb_model.joblib"))
+print(f"模型路径设置为: {MODEL_PATH}")
+
+# 直接尝试加载已知存在的模型文件
+try:
+    print(f"直接尝试加载模型: {MODEL_PATH}")
+    MODEL = joblib.load(MODEL_PATH)
+    print(f"成功直接加载模型: {type(MODEL)}")
+except Exception as e:
+    print(f"直接加载模型失败，错误: {str(e)}")
+    MODEL = None
 
 # 备选路径，以防主路径不工作
 ALTERNATE_MODEL_PATHS = [
     Path(os.path.join(model_dir, "xgb_model.joblib")),
+    Path(os.path.join(model_dir, "xgboost_model.joblib")),
     Path(os.path.join(os.getcwd(), "model", "xgb_model.joblib")),
     Path(os.path.join(os.path.dirname(os.getcwd()), "model", "xgb_model.joblib"))
 ]
@@ -177,6 +188,49 @@ async def lifespan(app: FastAPI):
     """应用的生命周期管理"""
     global TRAINED_MODEL, SAMPLE_DATA, COLUMN_DESCRIPTIONS, RAW_DATA, MODEL, FEATURE_COLS, PROPERTIES_DF
     
+    print("=== 开始应用生命周期管理 ===")
+    
+    # 尝试修复模型文件权限问题
+    source_model_path = os.path.join(base_dir, 'model', 'xgb_model.joblib')
+    backup_model_path = os.path.join(base_dir, 'model', 'xgb_model_backup.joblib')
+    
+    if os.path.exists(source_model_path):
+        try:
+            print(f"尝试创建模型文件备份，从 {source_model_path} 到 {backup_model_path}")
+            import shutil
+            shutil.copy2(source_model_path, backup_model_path)
+            print("成功创建模型备份")
+            
+            # 尝试直接加载备份
+            try:
+                print(f"尝试加载模型备份: {backup_model_path}")
+                model_data = joblib.load(backup_model_path)
+                if isinstance(model_data, dict) and "model" in model_data:
+                    MODEL = model_data["model"]
+                    print(f"从备份的字典结构加载模型成功: {type(MODEL)}")
+                else:
+                    MODEL = model_data
+                    print(f"从备份直接加载模型成功: {type(MODEL)}")
+                
+                TRAINED_MODEL = MODEL
+            except Exception as e:
+                print(f"加载模型备份失败: {str(e)}")
+        except Exception as e:
+            print(f"创建模型备份失败: {str(e)}")
+    
+    # 尝试使用pickle直接加载
+    try:
+        import pickle
+        print("尝试使用pickle加载模型...")
+        with open(source_model_path, 'rb') as f:
+            pickle_model = pickle.load(f)
+            print(f"使用pickle成功加载模型: {type(pickle_model)}")
+            if MODEL is None:
+                MODEL = pickle_model
+                TRAINED_MODEL = MODEL
+    except Exception as e:
+        print(f"使用pickle加载失败: {str(e)}")
+    
     # 注册项目管理API
     if PROJECT_API_AVAILABLE:
         init_project_api(app)
@@ -190,7 +244,31 @@ async def lifespan(app: FastAPI):
     os.makedirs(model_dir, exist_ok=True)
     print(f"模型目录路径: {model_dir}")
     
-    model_file = os.path.join(model_dir, 'xgboost_model.pkl')
+    # 智能查找XGBoost模型文件
+    xgb_model_file = None
+    possible_names = [
+        "xgb_model.joblib", 
+        "XGBRegressor_model.joblib", 
+        "xgboost_model.joblib",
+        "model.joblib"
+    ]
+    
+    # 首先尝试预定义的可能名称
+    for name in possible_names:
+        path = os.path.join(model_dir, name)
+        if os.path.exists(path):
+            xgb_model_file = path
+            print(f"找到模型文件: {path}")
+            break
+    
+    # 如果没有找到，搜索目录中所有joblib文件
+    if not xgb_model_file and os.path.exists(model_dir):
+        print("未找到预期名称的模型文件，搜索目录中的所有joblib文件...")
+        for file in os.listdir(model_dir):
+            if file.endswith(".joblib") and ("xgb" in file.lower() or "boost" in file.lower()):
+                xgb_model_file = os.path.join(model_dir, file)
+                print(f"找到可能匹配的模型文件: {xgb_model_file}")
+                break
     
     # 优先使用ModelFactory获取模型
     if MODELS_AVAILABLE:
@@ -201,13 +279,31 @@ async def lifespan(app: FastAPI):
                 TRAINED_MODEL = ModelFactory.get_active_model()
                 if TRAINED_MODEL:
                     print(f"已从模型工厂加载活跃模型: {TRAINED_MODEL.model_type}")
+                    MODEL = TRAINED_MODEL
                 else:
                     # 回退到传统加载方式
-                    if os.path.exists(model_file):
-                        TRAINED_MODEL = joblib.load(model_file)
-                        print(f"已从{model_file}加载模型")
+                    if xgb_model_file and os.path.exists(xgb_model_file):
+                        try:
+                            print(f"尝试加载模型文件: {xgb_model_file}")
+                            model_data = joblib.load(xgb_model_file)
+                            
+                            # 处理模型数据可能的不同格式
+                            if isinstance(model_data, dict) and "model" in model_data:
+                                MODEL = model_data["model"]
+                                print(f"从字典结构加载模型成功")
+                                if "feature_names" in model_data:
+                                    FEATURE_COLS = model_data["feature_names"]
+                                    print(f"从模型数据加载特征列，共{len(FEATURE_COLS)}列")
+                            else:
+                                MODEL = model_data
+                                print("直接加载模型成功")
+                            
+                            TRAINED_MODEL = MODEL
+                            print(f"已从{xgb_model_file}加载模型")
+                        except Exception as load_error:
+                            print(f"加载模型文件出错: {str(load_error)}")
                     else:
-                        print(f"警告: 找不到模型文件 {model_file}")
+                        print(f"警告: 找不到模型文件")
             else:
                 # 如果没有get_active_model方法，尝试使用list_models方法
                 print("ModelFactory没有get_active_model方法，尝试获取最新模型")
@@ -226,40 +322,113 @@ async def lifespan(app: FastAPI):
                             print("没有找到可用模型")
                     else:
                         # 回退到传统加载方式
-                        if os.path.exists(model_file):
-                            MODEL = joblib.load(model_file)
-                            TRAINED_MODEL = MODEL
-                            print(f"已从{model_file}加载模型")
+                        if xgb_model_file and os.path.exists(xgb_model_file):
+                            try:
+                                print(f"尝试加载模型文件: {xgb_model_file}")
+                                model_data = joblib.load(xgb_model_file)
+                                
+                                # 处理模型数据可能的不同格式
+                                if isinstance(model_data, dict) and "model" in model_data:
+                                    MODEL = model_data["model"]
+                                    print(f"从字典结构加载模型成功")
+                                    if "feature_names" in model_data:
+                                        FEATURE_COLS = model_data["feature_names"]
+                                        print(f"从模型数据加载特征列，共{len(FEATURE_COLS)}列")
+                                else:
+                                    MODEL = model_data
+                                    print("直接加载模型成功")
+                                
+                                TRAINED_MODEL = MODEL
+                                print(f"已从{xgb_model_file}加载模型")
+                            except Exception as load_error:
+                                print(f"加载模型文件出错: {str(load_error)}")
                         else:
-                            print(f"警告: 找不到模型文件 {model_file}")
+                            print(f"警告: 找不到模型文件")
                 except Exception as list_error:
                     print(f"尝试获取模型列表失败: {str(list_error)}")
                     # 回退到传统加载方式
-                    if os.path.exists(model_file):
-                        MODEL = joblib.load(model_file)
-                        TRAINED_MODEL = MODEL
-                        print(f"已从{model_file}加载模型")
+                    if xgb_model_file and os.path.exists(xgb_model_file):
+                        try:
+                            print(f"尝试加载模型文件: {xgb_model_file}")
+                            model_data = joblib.load(xgb_model_file)
+                            
+                            # 处理模型数据可能的不同格式
+                            if isinstance(model_data, dict) and "model" in model_data:
+                                MODEL = model_data["model"]
+                                print(f"从字典结构加载模型成功")
+                                if "feature_names" in model_data:
+                                    FEATURE_COLS = model_data["feature_names"]
+                                    print(f"从模型数据加载特征列，共{len(FEATURE_COLS)}列")
+                            else:
+                                MODEL = model_data
+                                print("直接加载模型成功")
+                            
+                            TRAINED_MODEL = MODEL
+                            print(f"已从{xgb_model_file}加载模型")
+                        except Exception as load_error:
+                            print(f"加载模型文件出错: {str(load_error)}")
                     else:
-                        print(f"警告: 找不到模型文件 {model_file}")
+                        print(f"警告: 找不到模型文件")
         except Exception as e:
             print(f"加载模型出错: {str(e)}")
             # 回退到传统加载方式
-            if os.path.exists(model_file):
-                MODEL = joblib.load(model_file)
-                TRAINED_MODEL = MODEL
-                print(f"已从{model_file}加载模型")
+            if xgb_model_file and os.path.exists(xgb_model_file):
+                try:
+                    print(f"尝试加载模型文件: {xgb_model_file}")
+                    model_data = joblib.load(xgb_model_file)
+                    
+                    # 处理模型数据可能的不同格式
+                    if isinstance(model_data, dict) and "model" in model_data:
+                        MODEL = model_data["model"]
+                        print(f"从字典结构加载模型成功")
+                        if "feature_names" in model_data:
+                            FEATURE_COLS = model_data["feature_names"]
+                            print(f"从模型数据加载特征列，共{len(FEATURE_COLS)}列")
+                    else:
+                        MODEL = model_data
+                        print("直接加载模型成功")
+                    
+                    TRAINED_MODEL = MODEL
+                    print(f"已从{xgb_model_file}加载模型")
+                except Exception as load_error:
+                    print(f"加载模型文件出错: {str(load_error)}")
             else:
-                print(f"警告: 找不到模型文件 {model_file}")
+                print(f"警告: 找不到模型文件")
+    else:
+        # 如果模型模块不可用，尝试直接加载模型文件
+        if xgb_model_file and os.path.exists(xgb_model_file):
+            try:
+                print(f"模型模块不可用，直接尝试加载模型文件: {xgb_model_file}")
+                model_data = joblib.load(xgb_model_file)
+                
+                # 处理模型数据可能的不同格式
+                if isinstance(model_data, dict) and "model" in model_data:
+                    MODEL = model_data["model"]
+                    print(f"从字典结构加载模型成功")
+                    if "feature_names" in model_data:
+                        FEATURE_COLS = model_data["feature_names"]
+                        print(f"从模型数据加载特征列，共{len(FEATURE_COLS)}列")
+                else:
+                    MODEL = model_data
+                    print("直接加载模型成功")
+                
+                TRAINED_MODEL = MODEL
+                print(f"已从{xgb_model_file}加载模型")
+            except Exception as load_error:
+                print(f"加载模型文件出错: {str(load_error)}")
+        else:
+            print(f"警告: 找不到模型文件")
     
     # 尝试加载特征列
     try:
         feature_cols_path = os.path.join(model_dir, 'feature_cols.joblib')
-        if os.path.exists(feature_cols_path):
+        if os.path.exists(feature_cols_path) and not FEATURE_COLS:
             FEATURE_COLS = joblib.load(feature_cols_path)
             print(f"已从{feature_cols_path}加载特征列，共{len(FEATURE_COLS)}列")
         else:
-            print(f"警告: 未找到特征列文件 {feature_cols_path}")
-            FEATURE_COLS = []
+            if not FEATURE_COLS:
+                print(f"警告: 未找到特征列文件 {feature_cols_path}")
+                FEATURE_COLS = []
     except Exception as e:
         print(f"加载特征列出错: {str(e)}")
         FEATURE_COLS = []
@@ -1440,6 +1609,161 @@ async def activate_model(model_path: str):
         return {"success": True, "message": f"模型 {model_path} 已激活"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"激活模型失败: {str(e)}")
+
+@app.get("/api/debug/model")
+async def debug_model():
+    """调试模型加载问题"""
+    # 检查模型路径
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    model_dir = os.path.join(base_dir, 'model')
+    model_path = os.path.join(model_dir, "xgb_model.joblib")
+    
+    # 收集诊断信息
+    result = {
+        "model_path": str(model_path),
+        "model_exists": os.path.exists(model_path),
+        "model_size": os.path.getsize(model_path) if os.path.exists(model_path) else 0,
+        "model_permissions": oct(os.stat(model_path).st_mode)[-3:] if os.path.exists(model_path) else None,
+        "global_model_loaded": MODEL is not None,
+        "python_version": sys.version,
+        "joblib_version": joblib.__version__ if hasattr(joblib, "__version__") else "unknown",
+        "module_paths": sys.path,
+        "model_dir_contents": os.listdir(model_dir)
+    }
+    
+    # 尝试加载并诊断问题
+    if os.path.exists(model_path):
+        try:
+            # 尝试使用不同方法加载
+            result["load_attempts"] = []
+            
+            # 1. 标准joblib加载
+            try:
+                model_data = joblib.load(model_path)
+                result["load_attempts"].append({
+                    "method": "joblib.load",
+                    "success": True,
+                    "model_type": str(type(model_data)),
+                    "model_keys": list(model_data.keys()) if isinstance(model_data, dict) else None
+                })
+            except Exception as e:
+                result["load_attempts"].append({
+                    "method": "joblib.load",
+                    "success": False,
+                    "error": str(e)
+                })
+            
+            # 2. pickle加载
+            try:
+                import pickle
+                with open(model_path, 'rb') as f:
+                    pickle_model = pickle.load(f)
+                result["load_attempts"].append({
+                    "method": "pickle.load",
+                    "success": True,
+                    "model_type": str(type(pickle_model)),
+                    "model_keys": list(pickle_model.keys()) if isinstance(pickle_model, dict) else None
+                })
+            except Exception as e:
+                result["load_attempts"].append({
+                    "method": "pickle.load",
+                    "success": False,
+                    "error": str(e)
+                })
+                
+            # 3. 读取原始字节
+            try:
+                with open(model_path, 'rb') as f:
+                    first_100_bytes = f.read(100)
+                result["first_100_bytes_hex"] = first_100_bytes.hex()
+            except Exception as e:
+                result["first_100_bytes_error"] = str(e)
+                
+        except Exception as e:
+            result["diagnosis_error"] = str(e)
+    
+    return result
+
+@app.get("/api/fix/model")
+async def fix_model():
+    """尝试修复模型加载问题"""
+    global MODEL, TRAINED_MODEL
+    
+    # 收集结果
+    result = {"fixes_attempted": []}
+    
+    # 模型路径
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    model_dir = os.path.join(base_dir, 'model')
+    source_path = os.path.join(model_dir, "xgb_model.joblib")
+    
+    # 修复方法1: 重新拷贝并确保权限
+    try:
+        new_path = os.path.join(model_dir, "fixed_xgb_model.joblib")
+        import shutil
+        shutil.copy2(source_path, new_path)
+        os.chmod(new_path, 0o644)  # 确保权限正确
+        
+        result["fixes_attempted"].append({
+            "method": "file_copy_and_permissions",
+            "source": source_path,
+            "target": new_path,
+            "success": os.path.exists(new_path)
+        })
+        
+        # 尝试加载这个新文件
+        try:
+            model_data = joblib.load(new_path)
+            
+            # 尝试不同方式获取模型对象
+            if isinstance(model_data, dict):
+                if "model" in model_data:
+                    MODEL = model_data["model"]
+                    result["fixes_attempted"].append({
+                        "method": "load_from_dict_model",
+                        "success": True
+                    })
+                else:
+                    # 寻找可能的模型对象
+                    for key, value in model_data.items():
+                        if hasattr(value, 'predict'):
+                            MODEL = value
+                            result["fixes_attempted"].append({
+                                "method": "load_from_dict_with_predict",
+                                "success": True,
+                                "key_used": key
+                            })
+                            break
+            else:
+                MODEL = model_data
+                result["fixes_attempted"].append({
+                    "method": "direct_load",
+                    "success": True
+                })
+                
+            # 如果成功加载了模型
+            if MODEL is not None:
+                TRAINED_MODEL = MODEL
+                result["model_loaded"] = True
+                result["model_type"] = str(type(MODEL))
+        except Exception as e:
+            result["fixes_attempted"].append({
+                "method": "load_new_file",
+                "success": False,
+                "error": str(e)
+            })
+    
+    except Exception as e:
+        result["fixes_attempted"].append({
+            "method": "file_copy_and_permissions",
+            "success": False,
+            "error": str(e)
+        })
+    
+    # 最后检查模型是否已加载
+    result["final_model_loaded"] = MODEL is not None
+    
+    return result
 
 # Vercel部署支持
 from mangum import Mangum
