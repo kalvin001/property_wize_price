@@ -15,6 +15,9 @@ from pathlib import Path
 # 检测当前操作系统
 IS_WINDOWS = platform.system().lower() == 'windows'
 
+# 确定Python命令
+PYTHON_CMD = 'python' if IS_WINDOWS else 'python3'
+
 def check_port_in_use(port):
     """检查指定端口是否被占用"""
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -75,7 +78,7 @@ def start_backend(max_retries=3, background=False):
         if background:
             with open(log_file, 'w') as f:
                 process = subprocess.Popen(
-                    ['python', 'main.py'], 
+                    [PYTHON_CMD, 'main.py'], 
                     cwd=backend_dir,
                     stdout=f, 
                     stderr=subprocess.STDOUT,
@@ -83,7 +86,7 @@ def start_backend(max_retries=3, background=False):
                 )
         else:
             process = subprocess.Popen(
-                ['python', 'main.py'],
+                [PYTHON_CMD, 'main.py'],
                 cwd=backend_dir
             )
     
@@ -117,7 +120,7 @@ def start_backend(max_retries=3, background=False):
                 if background:
                     with open(log_file, 'w') as f:
                         process = subprocess.Popen(
-                            ['python', 'main.py'], 
+                            [PYTHON_CMD, 'main.py'], 
                             cwd=backend_dir,
                             stdout=f, 
                             stderr=subprocess.STDOUT,
@@ -125,7 +128,7 @@ def start_backend(max_retries=3, background=False):
                         )
                 else:
                     process = subprocess.Popen(
-                        ['python', 'main.py'],
+                        [PYTHON_CMD, 'main.py'],
                         cwd=backend_dir
                     )
     
