@@ -38,7 +38,7 @@ const nextConfig = {
     return [
       {
         source: '/api/:path*',
-        destination: 'http://localhost:8000/api/:path*' // 代理到后端8000端口
+        destination: 'http://localhost:8102/api/:path*' // 代理到后端8102端口
       }
     ]
   },

@@ -4,7 +4,7 @@
   "description": "可解释房产估价系统",
   "main": "index.js",
   "scripts": {
-    "dev": "next dev -p 3001",
+    "dev": "next dev -p 8101",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"

@@ -90,7 +90,7 @@ def start_servers():
     
     # 设置环境变量来确保Vite使用正确的端口
     env = os.environ.copy()
-    frontend_port = 3001
+    frontend_port = 8101
     env["PORT"] = str(frontend_port)
     env["VITE_PORT"] = str(frontend_port)
     
@@ -159,7 +159,7 @@ def main():
         
         print("\n系统已启动!")
         print(f"前端: http://127.0.0.1:{frontend_port}/#/")
-        print(f"后端: http://127.0.0.1:8000")
+        print(f"后端: http://127.0.0.1:8102")
         print("\n按 Ctrl+C 停止服务")
         
         try:

@@ -37,28 +37,28 @@ def main():
     
     # 检查端口
     print("\n检查端口状态...")
-    frontend_port_open = check_port("localhost", 3001)
-    backend_port_open = check_port("localhost", 8000)
+    frontend_port_open = check_port("localhost", 8101)
+    backend_port_open = check_port("localhost", 8102)
     
     if frontend_port_open:
-        print("✅ 前端端口 (3001) 已开放")
+        print("✅ 前端端口 (8101) 已开放")
     else:
-        print("❌ 前端端口 (3001) 未开放 - 请确认前端服务已启动")
+        print("❌ 前端端口 (8101) 未开放 - 请确认前端服务已启动")
     
     if backend_port_open:
-        print("✅ 后端端口 (8000) 已开放")
+        print("✅ 后端端口 (8102) 已开放")
     else:
-        print("❌ 后端端口 (8000) 未开放 - 请确认后端服务已启动")
+        print("❌ 后端端口 (8102) 未开放 - 请确认后端服务已启动")
     
     # 如果端口开放，检查服务
     if frontend_port_open:
         print("\n检查前端服务...")
-        check_service("http://localhost:3001", "前端")
+        check_service("http://localhost:8101", "前端")
     
     if backend_port_open:
         print("\n检查后端服务...")
-        check_service("http://localhost:8000", "后端")
-        check_service("http://localhost:8000/api/health", "后端健康检查")
+        check_service("http://localhost:8102", "后端")
+        check_service("http://localhost:8102/api/health", "后端健康检查")
     
     print("\n诊断建议:")
     if not frontend_port_open:
@@ -73,8 +73,8 @@ def main():
     print("4. 尝试重启电脑")
     
     print("\n如果所有服务都正常但仍无法访问，请尝试:")
-    print("1. 直接访问: http://localhost:3001/#/")
-    print("2. 或者通过IP地址: http://127.0.0.1:3001/")
+    print("1. 直接访问: http://localhost:8101/#/")
+    print("2. 或者通过IP地址: http://127.0.0.1:8101/")
     
 if __name__ == "__main__":
     main() 

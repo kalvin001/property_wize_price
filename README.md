@@ -111,7 +111,7 @@ pip install -r requirements.txt
 python main.py
 ```
 
-服务将在 http://localhost:8000 上运行。
+服务将在 http://localhost:8102 上运行。
 
 ### 前端
 
@@ -121,7 +121,7 @@ npm install
 npm run dev
 ```
 
-应用将在 http://localhost:3001 上运行。
+应用将在 http://localhost:8101 上运行。
 
 ## API端点
 

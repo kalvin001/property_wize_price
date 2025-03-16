@@ -1,0 +1,19 @@
+
+> property-wize-price@1.0.0 dev
+> next dev -p 8101
+
+  ▲ Next.js 13.5.8
+  - Local:        http://localhost:8101
+  - Experiments (use at your own risk):
+     · optimizeCss
+     · scrollRestoration
+
+ ✓ Ready in 1221ms
+ ✓ Compiled /_error in 803ms (1430 modules)
+Time 2ms
+ ⚠ Fast Refresh had to perform a full reload. Read more: https://nextjs.org/docs/messages/fast-refresh-reload
+Time 2ms
+Time 2ms
+Time 1ms
+ ✓ Compiled /property-reports in 684ms (1617 modules)
+ ✓ Compiled /model-evaluation in 724ms (1952 modules)

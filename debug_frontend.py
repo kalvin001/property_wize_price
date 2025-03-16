@@ -71,7 +71,7 @@ def start_frontend_verbose():
         sys.exit(1)
     
     # 检查端口是否被占用
-    port = 3001
+    port = 8101
     if check_port_in_use(port):
         print(f"警告: 端口 {port} 已被占用")
         choice = input(f"是否尝试释放端口 {port}? (y/n): ")

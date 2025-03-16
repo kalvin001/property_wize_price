@@ -1,0 +1,22 @@
+INFO:     Started server process [47272]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8102 (Press CTRL+C to quit)
+成功导入模型模块
+未找到项目管理模块，将不会启用项目管理功能
+成功导入模型模块
+未找到项目管理模块，将不会启用项目管理功能
+ModelFactory没有get_active_model方法，尝试获取最新模型
+警告: 使用旧格式加载模型，无法恢复完整元数据
+加载模型 ../model\feature_cols.joblib 失败: 无法确定模型类型
+警告: 使用旧格式加载模型，无法恢复完整元数据
+加载模型 ../model\scaler.joblib 失败: 无法确定模型类型
+警告: 使用旧格式加载模型，无法恢复完整元数据
+加载模型 ../model\selected_features.joblib 失败: 无法确定模型类型
+警告: 使用旧格式加载模型，无法恢复完整元数据
+已加载最新模型: ../model\xgboost_model.joblib
+已从../model\feature_cols.joblib加载特征列，共113列
+尝试从../resources\house_samples_features.csv加载房产数据...
+成功加载房产数据，共69778条记录
+INFO:     ::1:0 - "GET /api/properties?page=1&page_size=3 HTTP/1.1" 200 OK
+INFO:     ::1:0 - "GET /api/properties?page=1&page_size=3 HTTP/1.1" 200 OK

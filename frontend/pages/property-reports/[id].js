@@ -309,7 +309,7 @@ export default function PropertyDetail() {
     });
     
     // 设置下载链接 - 使用简化版端点
-    const downloadLink = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'}/api/properties/${id}/pdf-simple`;
+    const downloadLink = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8102'}/api/properties/${id}/pdf-simple`;
     
     // 打印调试信息
     console.log('正在请求PDF下载链接:', downloadLink);

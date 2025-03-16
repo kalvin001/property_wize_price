@@ -7,6 +7,10 @@ import time
 import socket
 import signal
 import platform
+import argparse
+import sys
+import datetime
+from pathlib import Path
 
 def check_port_in_use(port):
     """检查指定端口是否被占用"""
@@ -33,12 +37,17 @@ def find_and_kill_process_by_port(port):
     except subprocess.CalledProcessError:
         print(f"没有进程占用端口{port}")
 
-def start_backend(max_retries=3):
+def start_backend(max_retries=3, background=False):
     """启动后端API服务，支持重试"""
-    print("正在启动后端API服务 - 端口8000")
+    print("正在启动后端API服务 - 端口8102")
     
     # 启动后端
-    backend_cmd = 'start cmd /k "cd backend && python main.py"'
+    if background:
+        log_file = f"logs/backend_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+        backend_cmd = f'cd backend && start /min cmd /c "python main.py > {os.path.abspath(log_file)} 2>&1"'
+    else:
+        backend_cmd = 'start cmd /k "cd backend && python main.py"'
+    
     subprocess.Popen(backend_cmd, shell=True)
     
     # 检查后端是否成功启动
@@ -47,7 +56,7 @@ def start_backend(max_retries=3):
         print(f"等待后端启动 (尝试 {retry_count+1}/{max_retries})...")
         time.sleep(3)
         
-        if check_port_in_use(8000):
+        if check_port_in_use(8102):
             print("后端API服务已成功启动")
             return True
         
@@ -56,44 +65,62 @@ def start_backend(max_retries=3):
         if retry_count < max_retries:
             print("后端启动可能失败，正在重试...")
             # 关闭可能存在的失败进程
-            find_and_kill_process_by_port(8000)
+            find_and_kill_process_by_port(8102)
             # 重新启动
             subprocess.Popen(backend_cmd, shell=True)
     
     print("警告: 后端启动多次尝试后仍然失败")
     return False
 
-def start_frontend():
+def start_frontend(background=False):
     """启动前端应用"""
-    print("正在启动前端应用 - 端口3001")
-    frontend_cmd = 'start cmd /k "cd frontend && npm run dev"'
+    print("正在启动前端应用 - 端口8101")
+    
+    if background:
+        log_file = f"logs/frontend_{datetime.datetime.now().strftime('%Y%m%d_%H%M%S')}.log"
+        frontend_cmd = f'cd frontend && start /min cmd /c "npm run dev > {os.path.abspath(log_file)} 2>&1"'
+    else:
+        frontend_cmd = 'start cmd /k "cd frontend && npm run dev"'
+    
     subprocess.Popen(frontend_cmd, shell=True)
     
     # 等待前端启动
     time.sleep(2)
     print("前端应用已启动")
 
-def start_application():
+def start_application(background=False):
     """启动PropertyWize全栈应用"""
     print("正在启动PropertyWize全栈应用...")
 
+    # 确保logs目录存在
+    logs_dir = Path("logs")
+    logs_dir.mkdir(exist_ok=True)
+
     # 检查并释放前端和后端端口
-    find_and_kill_process_by_port(3001)  # 前端端口
-    find_and_kill_process_by_port(8000)  # 后端端口
+    find_and_kill_process_by_port(8101)  # 前端端口
+    find_and_kill_process_by_port(8102)  # 后端端口
 
     # 启动后端API服务
-    backend_started = start_backend()
+    backend_started = start_backend(background=background)
     
     # 无论后端是否成功启动，都尝试启动前端
-    start_frontend()
+    start_frontend(background=background)
 
     print("PropertyWize全栈应用已启动！")
-    print("前端: http://localhost:3001")
-    print("后端API: http://localhost:8000")
+    print("前端: http://localhost:8101")
+    print("后端API: http://localhost:8102")
+    
+    if background:
+        print(f"应用在后台运行中，日志保存在 {os.path.abspath('logs')} 目录下")
     
     if not backend_started:
         print("\n警告: 后端可能未正确启动，请检查后端控制台输出并手动重启后端")
         print("如果出现错误，可能需要修复main.py中的lifespan实现")
 
 if __name__ == "__main__":
-    start_application() 
+    # 解析命令行参数
+    parser = argparse.ArgumentParser(description='启动PropertyWize全栈应用')
+    parser.add_argument('--background', '-b', action='store_true', help='在后台运行并将日志写入logs目录')
+    args = parser.parse_args()
+    #python start_all.py -b
+    start_application(background=args.background) 

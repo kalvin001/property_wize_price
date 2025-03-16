@@ -99,7 +99,7 @@ const PropertyNeighborhoodStats = ({ neighborhoodStats }) => {
   // 如果没有数据，但配置为强制显示，则创建默认数据
   if (!neighborhoodStats && forceShowWithDefaultData) {
     console.warn('无周边房产数据，使用默认数据展示');
-    const defaultPrice = 800000; // 默认房价800,000
+    const defaultPrice = 810200; // 默认房价800,000
     const defaultData = {
       avg_price: defaultPrice,
       min_price: defaultPrice * 0.85,
@@ -178,7 +178,7 @@ const PropertyNeighborhoodStats = ({ neighborhoodStats }) => {
       },
       {
         type: '2km内',
-        price: safeStats.avg_price || 800000,
+        price: safeStats.avg_price || 810200,
       },
       {
         type: '3km内',
