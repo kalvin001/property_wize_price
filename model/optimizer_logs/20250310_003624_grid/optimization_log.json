@@ -1,0 +1,24 @@
+{
+  "method": "grid",
+  "start_time": "2025-03-10T00:36:24.916940",
+  "parameters": {
+    "optimization": "grid",
+    "feature_selection": true,
+    "cv_folds": 3,
+    "bayes_iterations": 20,
+    "min_features": 15
+  },
+  "iterations": [],
+  "end_time": "2025-03-10T00:36:48.090853",
+  "total_seconds": 23.173913717269897,
+  "best_parameters": {
+    "colsample_bytree": 0.8,
+    "learning_rate": 0.1,
+    "max_depth": 6,
+    "n_estimators": 200,
+    "reg_alpha": 0,
+    "reg_lambda": 1,
+    "subsample": 0.8
+  },
+  "best_score": 539214.6960639117
+}
