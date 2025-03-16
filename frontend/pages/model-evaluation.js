@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import Head from 'next/head';
 import { 
   Layout, 
-  Menu, 
   Typography, 
   Card, 
   Row, 
@@ -14,17 +13,19 @@ import {
   Alert,
   Progress,
   Tooltip,
-  Tag
+  Tag,
+  Button
 } from 'antd';
 import { 
-  HomeOutlined, 
   BarChartOutlined,
   FileTextOutlined,
   LineChartOutlined,
-  PercentageOutlined
+  PercentageOutlined,
+  SettingOutlined
 } from '@ant-design/icons';
 import Link from 'next/link';
 import dynamic from 'next/dynamic';
+import MainHeader from '../components/Header';
 
 // 使用动态导入并禁用 SSR
 const Column = dynamic(
@@ -32,7 +33,7 @@ const Column = dynamic(
   { ssr: false, loading: () => <div style={{ height: '400px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}><Spin tip="图表加载中..." /></div> }
 );
 
-const { Header, Content, Footer } = Layout;
+const { Content, Footer } = Layout;
 const { Title, Paragraph } = Typography;
 
 export default function ModelEvaluation() {
@@ -186,31 +187,25 @@ export default function ModelEvaluation() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <Header style={{ position: 'fixed', zIndex: 1, width: '100%', background: 'white', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-        <div style={{ float: 'left', marginRight: '30px' }}>
-          <Typography.Title level={3} style={{ margin: '8px 0', color: '#1890ff' }}>
-            <HomeOutlined /> PropertyWize
-          </Typography.Title>
-        </div>
-        <Menu 
-          theme="light" 
-          mode="horizontal" 
-          defaultSelectedKeys={['2']}
-          style={{ lineHeight: '64px' }}
-          items={[
-            { key: '1', label: <Link href="/">首页</Link> },
-            { key: '2', label: '模型评估' },
-            { key: '3', label: <Link href="/property-reports">房产估价报告</Link> },
-          ]}
-        />
-      </Header>
+      <MainHeader selectedKey="2" />
 
       <Content style={{ padding: '0 50px', marginTop: 64 }}>
         <div style={{ background: '#fff', padding: 24, minHeight: 'calc(100vh - 64px - 69px)', borderRadius: '4px', marginTop: '20px' }}>
           <Title level={2}>XGBoost模型评估</Title>
-          <Paragraph>
-            本页面展示了我们XGBoost房价预测模型的详细评估指标和特征重要性分析，帮助您了解模型的性能和预测依据。
-          </Paragraph>
+          <Row justify="space-between">
+            <Col>
+              <Paragraph>
+                本页面展示了我们XGBoost房价预测模型的详细评估指标和特征重要性分析，帮助您了解模型的性能和预测依据。
+              </Paragraph>
+            </Col>
+            <Col>
+              <Button type="primary" icon={<SettingOutlined />}>
+                <Link href="/model-management" style={{ color: 'white' }}>
+                  模型管理
+                </Link>
+              </Button>
+            </Col>
+          </Row>
 
           {loading ? (
             <div style={{ textAlign: 'center', margin: '50px 0' }}>

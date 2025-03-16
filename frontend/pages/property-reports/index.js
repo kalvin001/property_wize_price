@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { 
   Layout, 
-  Menu, 
   Typography, 
   Card, 
   Row, 
@@ -22,7 +21,6 @@ import {
   notification
 } from 'antd';
 import { 
-  HomeOutlined, 
   BarChartOutlined, 
   FileTextOutlined,
   SearchOutlined,
@@ -30,10 +28,12 @@ import {
   ArrowUpOutlined,
   ArrowDownOutlined,
   DollarOutlined,
-  InfoCircleOutlined
+  InfoCircleOutlined,
+  HomeOutlined
 } from '@ant-design/icons';
+import MainHeader from '../../components/Header';
 
-const { Header, Content, Footer } = Layout;
+const { Content, Footer } = Layout;
 const { Title, Paragraph, Text } = Typography;
 const { Search } = Input;
 
@@ -189,24 +189,7 @@ export default function PropertyReports() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <Header style={{ position: 'fixed', zIndex: 1, width: '100%', background: 'white', boxShadow: '0 2px 8px rgba(0,0,0,0.06)' }}>
-        <div style={{ float: 'left', marginRight: '30px' }}>
-          <Typography.Title level={3} style={{ margin: '8px 0', color: '#1890ff' }}>
-            <HomeOutlined /> PropertyWize
-          </Typography.Title>
-        </div>
-        <Menu 
-          theme="light" 
-          mode="horizontal" 
-          defaultSelectedKeys={['3']}
-          style={{ lineHeight: '64px' }}
-          items={[
-            { key: '1', label: <Link href="/">首页</Link> },
-            { key: '2', label: <Link href="/model-evaluation">模型评估</Link> },
-            { key: '3', label: '房产估价报告' },
-          ]}
-        />
-      </Header>
+      <MainHeader selectedKey="3" />
 
       <Content style={{ padding: '0 50px', marginTop: 64 }}>
         <div style={{ background: '#fff', padding: 24, minHeight: 'calc(100vh - 64px - 69px)', borderRadius: '4px', marginTop: '20px' }}>

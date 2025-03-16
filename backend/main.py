@@ -20,6 +20,28 @@ from reportlab.lib.units import inch
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 import platform
+import sys
+from contextlib import asynccontextmanager
+
+# 添加项目根目录到sys.path
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+try:
+    # 导入模型接口和工厂
+    from models import ModelFactory, ModelInterface
+    MODELS_AVAILABLE = True
+    print("成功导入模型模块")
+except ImportError:
+    MODELS_AVAILABLE = False
+    print("未找到模型模块，将使用传统方式加载模型")
+
+# 导入项目管理API
+try:
+    from .project_api import init_project_api
+    PROJECT_API_AVAILABLE = True
+    print("成功导入项目管理模块")
+except ImportError:
+    PROJECT_API_AVAILABLE = False
+    print("未找到项目管理模块，将不会启用项目管理功能")
 
 # 添加自定义JSON编码器处理NumPy类型
 class NumpyEncoder(json.JSONEncoder):
@@ -76,75 +98,6 @@ class NumpyBaseModel(BaseModel):
         }
     )
 
-app = FastAPI(title="房产估价API")
-
-# 配置应用JSON序列化
-import fastapi.encoders
-# 保存原始的jsonable_encoder
-original_jsonable_encoder = fastapi.encoders.jsonable_encoder
-
-# 创建一个包装函数，处理NumPy类型
-def numpy_jsonable_encoder(obj, *args, **kwargs):
-    custom_encoder = kwargs.get('custom_encoder', {})
-    # 添加NumPy类型处理
-    numpy_encoders = {
-        np.integer: lambda v: int(v),
-        np.floating: lambda v: float(v),
-        np.ndarray: lambda v: v.tolist()
-    }
-    # 合并编码器
-    custom_encoder.update(numpy_encoders)
-    kwargs['custom_encoder'] = custom_encoder
-    # 调用原始函数
-    return original_jsonable_encoder(obj, *args, **kwargs)
-
-# 替换编码器
-fastapi.encoders.jsonable_encoder = numpy_jsonable_encoder
-
-# 配置CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],  # 在生产环境中应当设置为特定域名
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# 添加自定义响应类，使用NumpyEncoder处理NumPy类型
-class NumpyJSONResponse(JSONResponse):
-    def render(self, content: Any) -> bytes:
-        return json.dumps(
-            content,
-            ensure_ascii=False,
-            allow_nan=True,
-            indent=None,
-            separators=(",", ":"),
-            cls=NumpyEncoder,
-        ).encode("utf-8")
-
-# 设置默认响应类
-app.json_response_class = NumpyJSONResponse
-
-# 添加辅助函数，用于在API返回前转换NumPy类型
-def convert_numpy_types(obj):
-    """递归转换所有NumPy类型为Python原生类型"""
-    if isinstance(obj, np.integer):
-        return int(obj)
-    elif isinstance(obj, np.floating):
-        return float(obj)
-    elif isinstance(obj, np.ndarray):
-        return obj.tolist()
-    elif isinstance(obj, dict):
-        return {k: convert_numpy_types(v) for k, v in obj.items()}
-    elif isinstance(obj, list):
-        return [convert_numpy_types(item) for item in obj]
-    elif isinstance(obj, tuple):
-        return tuple(convert_numpy_types(item) for item in obj)
-    elif hasattr(obj, '__dict__'):
-        # 处理自定义对象
-        return {k: convert_numpy_types(v) for k, v in obj.__dict__.items()}
-    return obj
-
 # 数据模型
 class PropertyFeatures(NumpyBaseModel):
     features: Dict[str, Any]
@@ -199,41 +152,251 @@ class PropertyListResponse(NumpyBaseModel):
     page_size: int
     properties: List[Property]
 
-@app.on_event("startup")
-async def startup_event():
-    global MODEL, FEATURE_COLS, PROPERTIES_DF
+# 模型训练和管理相关的数据模型
+class ModelTrainingRequest(NumpyBaseModel):
+    model_type: str
+    params: Dict[str, Any] = {}
+    test_size: float = 0.2
+    random_state: int = 42
+
+class ModelTrainingResponse(NumpyBaseModel):
+    success: bool
+    message: str
+    metrics: Optional[Dict[str, float]] = None
+    model_path: Optional[str] = None
     
-    try:
-        # 加载模型和特征列
-        model_path = Path("../model/xgb_model.joblib")
-        feature_cols_path = Path("../model/feature_cols.joblib")
-        
-        if model_path.exists() and feature_cols_path.exists():
-            MODEL = joblib.load(model_path)
-            print(f"模型已加载 : {MODEL}")
-            FEATURE_COLS = joblib.load(feature_cols_path)
-            print(f"模型已加载，特征数量: {len(FEATURE_COLS)}")
-            
-            # 设置XGBoost的参数支持分类特征
-            if hasattr(MODEL, '_Booster'):
-                MODEL._Booster.set_param('enable_categorical', 'true')
-                print("已启用XGBoost分类特征支持")
-        else:
-            print("模型文件不存在，无法加载模型")
-            
-        # 尝试加载房产数据
+class ModelListResponse(NumpyBaseModel):
+    models: List[Dict[str, Any]]
+
+# 使用新的lifespan替代弃用的on_event
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """应用的生命周期管理"""
+    global TRAINED_MODEL, SAMPLE_DATA, COLUMN_DESCRIPTIONS, RAW_DATA, MODEL, FEATURE_COLS, PROPERTIES_DF
+    
+    # 注册项目管理API
+    if PROJECT_API_AVAILABLE:
+        init_project_api(app)
+        print("已注册项目管理API路由")
+    
+    # 加载模型
+    model_file = os.path.join('model', 'xgboost_model.pkl')
+    
+    # 优先使用ModelFactory获取模型
+    if MODELS_AVAILABLE:
         try:
-            csv_path = Path("../resources/house_samples_features.csv")
-            if csv_path.exists():
-                PROPERTIES_DF = pd.read_csv(csv_path)
-                print(f"房产数据已加载，共 {len(PROPERTIES_DF)} 条记录")
+            # 检查ModelFactory是否有get_active_model方法
+            if hasattr(ModelFactory, 'get_active_model'):
+                # 尝试从模型工厂获取活跃模型
+                TRAINED_MODEL = ModelFactory.get_active_model()
+                if TRAINED_MODEL:
+                    print(f"已从模型工厂加载活跃模型: {TRAINED_MODEL.model_type}")
+                else:
+                    # 回退到传统加载方式
+                    if os.path.exists(model_file):
+                        TRAINED_MODEL = joblib.load(model_file)
+                        print(f"已从{model_file}加载模型")
+                    else:
+                        print(f"警告: 找不到模型文件 {model_file}")
             else:
-                print("房产数据文件不存在")
+                # 如果没有get_active_model方法，尝试使用list_models方法
+                print("ModelFactory没有get_active_model方法，尝试获取最新模型")
+                try:
+                    # 获取所有模型并选择最新的一个
+                    models = ModelFactory.list_models("../model")
+                    if models and len(models) > 0:
+                        # 按创建时间排序
+                        sorted_models = sorted(models, key=lambda x: os.path.getmtime(x["path"]) if "path" in x else 0, reverse=True)
+                        if sorted_models:
+                            latest_model_path = sorted_models[0]["path"]
+                            MODEL = ModelFactory.load_model(latest_model_path)
+                            TRAINED_MODEL = MODEL
+                            print(f"已加载最新模型: {latest_model_path}")
+                        else:
+                            print("没有找到可用模型")
+                    else:
+                        # 回退到传统加载方式
+                        if os.path.exists(model_file):
+                            MODEL = joblib.load(model_file)
+                            TRAINED_MODEL = MODEL
+                            print(f"已从{model_file}加载模型")
+                        else:
+                            print(f"警告: 找不到模型文件 {model_file}")
+                except Exception as list_error:
+                    print(f"尝试获取模型列表失败: {str(list_error)}")
+                    # 回退到传统加载方式
+                    if os.path.exists(model_file):
+                        MODEL = joblib.load(model_file)
+                        TRAINED_MODEL = MODEL
+                        print(f"已从{model_file}加载模型")
+                    else:
+                        print(f"警告: 找不到模型文件 {model_file}")
         except Exception as e:
-            print(f"加载房产数据出错: {e}")
-            
+            print(f"加载模型出错: {str(e)}")
+            # 回退到传统加载方式
+            if os.path.exists(model_file):
+                MODEL = joblib.load(model_file)
+                TRAINED_MODEL = MODEL
+                print(f"已从{model_file}加载模型")
+            else:
+                print(f"警告: 找不到模型文件 {model_file}")
+    
+    # 尝试加载特征列
+    try:
+        feature_cols_path = os.path.join('../model', 'feature_cols.joblib')
+        if os.path.exists(feature_cols_path):
+            FEATURE_COLS = joblib.load(feature_cols_path)
+            print(f"已从{feature_cols_path}加载特征列，共{len(FEATURE_COLS)}列")
+        else:
+            print(f"警告: 未找到特征列文件 {feature_cols_path}")
+            FEATURE_COLS = []
     except Exception as e:
-        print(f"启动时出错: {e}")
+        print(f"加载特征列出错: {str(e)}")
+        FEATURE_COLS = []
+    
+    # 加载房产数据
+    try:
+        # 尝试加载属性数据
+        properties_paths = [
+            os.path.join('../resources', 'house_samples_features.csv'),
+            os.path.join('resources', 'house_samples_features.csv'),
+            os.path.join('../data', 'house_samples_features.csv'),
+            os.path.join('data', 'house_samples_features.csv'),
+            os.path.join('data', 'properties.csv'),
+            os.path.join('../data', 'properties.csv'),
+            os.path.join('data', 'processed_data.csv'),
+            os.path.join('../data', 'processed_data.csv')
+        ]
+        
+        for path in properties_paths:
+            if os.path.exists(path):
+                print(f"尝试从{path}加载房产数据...")
+                PROPERTIES_DF = pd.read_csv(path)
+                print(f"成功加载房产数据，共{len(PROPERTIES_DF)}条记录")
+                
+                # 确保房产数据包含必要的列
+                required_cols = ['prop_id', 'std_address']
+                if 'prop_id' not in PROPERTIES_DF.columns:
+                    # 尝试创建一个prop_id列
+                    if 'id' in PROPERTIES_DF.columns:
+                        PROPERTIES_DF['prop_id'] = PROPERTIES_DF['id']
+                    else:
+                        PROPERTIES_DF['prop_id'] = [f"PROP_{i}" for i in range(len(PROPERTIES_DF))]
+                    print("已添加prop_id列")
+                
+                if 'std_address' not in PROPERTIES_DF.columns:
+                    # 尝试创建一个std_address列
+                    if 'address' in PROPERTIES_DF.columns:
+                        PROPERTIES_DF['std_address'] = PROPERTIES_DF['address']
+                    else:
+                        PROPERTIES_DF['std_address'] = [f"地址_{i}" for i in range(len(PROPERTIES_DF))]
+                    print("已添加std_address列")
+                
+                break
+        else:
+            # 如果没有找到任何数据文件，创建一个空的DataFrame
+            print("警告: 未找到房产数据文件，将创建一个示例数据集")
+            PROPERTIES_DF = pd.DataFrame({
+                'prop_id': [f"SAMPLE_{i}" for i in range(10)],
+                'std_address': [f"示例地址_{i}" for i in range(10)],
+                'price': np.random.randint(500000, 2000000, 10),
+                'bedrooms': np.random.randint(1, 6, 10),
+                'bathrooms': np.random.randint(1, 4, 10),
+                'area': np.random.randint(80, 300, 10),
+                'year_built': np.random.randint(1980, 2020, 10)
+            })
+    except Exception as e:
+        print(f"加载房产数据出错: {str(e)}")
+        # 创建一个空的DataFrame
+        PROPERTIES_DF = pd.DataFrame({
+            'prop_id': [f"SAMPLE_{i}" for i in range(10)],
+            'std_address': [f"示例地址_{i}" for i in range(10)],
+            'price': np.random.randint(500000, 2000000, 10),
+            'bedrooms': np.random.randint(1, 6, 10),
+            'bathrooms': np.random.randint(1, 4, 10),
+            'area': np.random.randint(80, 300, 10),
+            'year_built': np.random.randint(1980, 2020, 10)
+        })
+        print("已创建示例房产数据")
+    
+    # 加载数据和列描述
+    try:
+        data_path = os.path.join('data', 'processed_data.csv')
+        if os.path.exists(data_path):
+            RAW_DATA = pd.read_csv(data_path)
+            print(f"已加载数据: {data_path}, 共{len(RAW_DATA)}条记录")
+            
+            # 生成示例数据
+            SAMPLE_DATA = RAW_DATA.sample(min(5, len(RAW_DATA))).to_dict('records')
+            
+            # 获取列描述
+            column_desc_path = os.path.join('data', 'column_descriptions.json')
+            if os.path.exists(column_desc_path):
+                with open(column_desc_path, 'r') as f:
+                    COLUMN_DESCRIPTIONS = json.load(f)
+                print(f"已加载列描述: {column_desc_path}")
+    except Exception as e:
+        print(f"加载数据出错: {str(e)}")
+    
+    yield  # 这里是应用运行的地方
+    
+    # 应用关闭时的清理代码
+    print("应用正在关闭，执行清理操作...")
+
+# 创建FastAPI应用，使用lifespan
+app = FastAPI(title="房产估价API", lifespan=lifespan)
+
+# 配置应用JSON序列化
+import fastapi.encoders
+# 保存原始的jsonable_encoder
+original_jsonable_encoder = fastapi.encoders.jsonable_encoder
+
+# 创建一个包装函数，处理NumPy类型
+def numpy_jsonable_encoder(obj, *args, **kwargs):
+    custom_encoder = kwargs.get('custom_encoder', {})
+    # 添加NumPy类型处理
+    numpy_encoders = {
+        np.integer: lambda v: int(v),
+        np.floating: lambda v: float(v),
+        np.ndarray: lambda v: v.tolist()
+    }
+    # 合并编码器
+    custom_encoder.update(numpy_encoders)
+    kwargs['custom_encoder'] = custom_encoder
+    # 调用原始函数
+    return original_jsonable_encoder(obj, *args, **kwargs)
+
+# 替换编码器
+fastapi.encoders.jsonable_encoder = numpy_jsonable_encoder
+
+# 添加辅助函数，用于在API返回前转换NumPy类型
+def convert_numpy_types(obj):
+    """递归转换所有NumPy类型为Python原生类型"""
+    if isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, dict):
+        return {k: convert_numpy_types(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_numpy_types(item) for item in obj]
+    elif isinstance(obj, tuple):
+        return tuple(convert_numpy_types(item) for item in obj)
+    elif hasattr(obj, '__dict__'):
+        # 处理自定义对象
+        return {k: convert_numpy_types(v) for k, v in obj.__dict__.items()}
+    return obj
+
+# 配置CORS中间件（移到启动事件之前）
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/")
 async def root():
@@ -360,33 +523,56 @@ async def predict_price(property_data: PropertyFeatures):
             features_df = features_df.drop(columns=cols_to_drop)
         
         # 使用模型预测
-        predicted_price = float(MODEL.predict(features_df)[0])
-        
-        # 计算特征重要性
+        predicted_price = 0.0
         feature_importance = []
-        if hasattr(MODEL, 'feature_importances_'):
-            importances = MODEL.feature_importances_
-            indices = np.argsort(importances)[::-1]
-            top_n = min(10, len(FEATURE_COLS))  # 最多返回前10个重要特征
+        
+        # 检查是否为新模型框架的模型
+        if MODELS_AVAILABLE and isinstance(MODEL, ModelInterface):
+            # 使用新模型框架的预测方法
+            predicted_price = float(MODEL.predict(features_df)[0])
             
-            for i in range(top_n):
-                idx = indices[i]
-                if idx < len(FEATURE_COLS):
-                    feature = FEATURE_COLS[idx]
-                    value = features_df[feature].values[0]
-                    importance = float(importances[idx])
+            # 获取特征重要性
+            try:
+                importance_df = MODEL.get_feature_importance()
+                top_n = min(10, len(importance_df))
+                feature_importance = [
+                    {
+                        "feature": str(importance_df.iloc[i]["feature"]),
+                        "importance": float(importance_df.iloc[i]["importance"]),
+                        "value": float(features_df[importance_df.iloc[i]["feature"]].iloc[0])
+                        if importance_df.iloc[i]["feature"] in features_df.columns else 0.0
+                    }
+                    for i in range(top_n)
+                ]
+            except Exception as e:
+                print(f"获取特征重要性时出错: {e}")
+        else:
+            # 传统模型的预测方法
+            predicted_price = float(MODEL.predict(features_df)[0])
+            
+            # 传统模型的特征重要性计算
+            if hasattr(MODEL, 'feature_importances_'):
+                importances = MODEL.feature_importances_
+                indices = np.argsort(importances)[::-1]
+                top_n = min(10, len(FEATURE_COLS))  # 最多返回前10个重要特征
+                
+                for i in range(top_n):
+                    idx = indices[i]
+                    feature_name = FEATURE_COLS[idx]
+                    importance = importances[idx]
+                    feature_value = float(features_df[feature_name].iloc[0]) if feature_name in features_df.columns else 0.0
+                    
                     feature_importance.append({
-                        "feature": feature,
-                        "value": float(value) if isinstance(value, (np.integer, np.floating)) else value if isinstance(value, (int, float, str, bool)) else str(value),
-                        "importance": importance,
-                        "effect": "positive" if importance > 0 else "negative"
+                        "feature": feature_name,
+                        "importance": float(importance),
+                        "value": feature_value
                     })
         
-        return ModelPredictionResult(
-            predicted_price=predicted_price,
-            feature_importance=feature_importance
-        )
-    
+        return {
+            "predicted_price": predicted_price,
+            "feature_importance": feature_importance
+        }
+        
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"预测过程中出错: {str(e)}")
 
@@ -480,9 +666,10 @@ async def get_properties(
             for col in row.index:
                 if col not in ['prop_id', 'std_address']:
                     val = row[col]
-                    features[col] = float(val) if isinstance(val, (int, float)) and not np.isnan(val) else (
-                        str(val) if not pd.isna(val) else None
-                    )
+                    if isinstance(val, (int, float)) and not np.isnan(val):
+                        features[col] = float(val)
+                    else:
+                        features[col] = str(val) if not pd.isna(val) else None
             
             properties.append(Property(
                 prop_id=str(row['prop_id']),
@@ -579,9 +766,10 @@ async def get_property_detail(prop_id: str):
         for col in row.index:
             if col not in ['prop_id', 'std_address']:
                 val = row[col]
-                features[col] = float(val) if isinstance(val, (int, float)) and not np.isnan(val) else (
-                    str(val) if not pd.isna(val) else None
-                )
+                if isinstance(val, (int, float)) and not np.isnan(val):
+                    features[col] = float(val)
+                else:
+                    features[col] = str(val) if not pd.isna(val) else None
         
         # 房产面积
         prop_area = float(row.get('prop_area', 100))
@@ -1089,6 +1277,132 @@ async def generate_simple_property_pdf(prop_id: str):
         traceback.print_exc()
         raise HTTPException(status_code=500, detail=f"生成简化PDF报告时出错: {str(e)}")
 
+# 模型管理相关的API
+@app.get("/api/models", response_model=ModelListResponse)
+async def list_models():
+    """获取所有可用模型的列表"""
+    try:
+        if not MODELS_AVAILABLE:
+            # 如果模型模块不可用，则返回空列表
+            return ModelListResponse(models=[])
+        
+        # 使用ModelFactory获取所有模型
+        models = ModelFactory.list_models("../model")
+        
+        # 对模型按创建时间倒序排序
+        models = sorted(models, key=lambda x: os.path.getmtime(x["path"]) if "path" in x else 0, reverse=True)
+        
+        return ModelListResponse(models=models)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取模型列表失败: {str(e)}")
+
+@app.post("/api/models/train", response_model=ModelTrainingResponse)
+async def train_model(request: ModelTrainingRequest):
+    """训练新模型"""
+    try:
+        if not MODELS_AVAILABLE:
+            raise HTTPException(status_code=400, detail="模型模块不可用，无法训练新模型")
+        
+        # 读取数据
+        data_path = "../resources/house_samples_features.csv"
+        if not os.path.exists(data_path):
+            raise HTTPException(status_code=404, detail=f"数据文件不存在: {data_path}")
+        
+        # 导入train_and_evaluate_model函数
+        sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        from train_models import train_and_evaluate_model
+        
+        # 训练模型
+        metrics = train_and_evaluate_model(
+            model_type=request.model_type,
+            data_file=data_path,
+            output_dir="../model",
+            test_size=request.test_size,
+            random_state=request.random_state,
+            params=request.params
+        )
+        
+        # 构建响应
+        model_path = f"../model/{request.model_type}_model.joblib"
+        
+        return ModelTrainingResponse(
+            success=True,
+            message=f"{request.model_type}模型训练成功",
+            metrics=metrics,
+            model_path=model_path
+        )
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"模型训练失败: {str(e)}")
+
+@app.get("/api/models/{model_type}/params")
+async def get_model_params(model_type: str):
+    """获取指定模型类型的默认参数"""
+    try:
+        if not MODELS_AVAILABLE:
+            raise HTTPException(status_code=400, detail="模型模块不可用，无法获取模型参数")
+        
+        # 创建临时模型实例以获取默认参数
+        model = ModelFactory.create_model(model_type)
+        
+        return {
+            "model_type": model_type,
+            "params": model.get_params()
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"获取模型参数失败: {str(e)}")
+
+@app.delete("/api/models/{model_path:path}")
+async def delete_model(model_path: str):
+    """删除指定的模型文件"""
+    try:
+        full_path = f"../model/{model_path}"
+        if not os.path.exists(full_path):
+            raise HTTPException(status_code=404, detail=f"模型文件不存在: {model_path}")
+        
+        # 删除模型文件
+        os.remove(full_path)
+        
+        # 尝试删除关联的元数据文件
+        meta_path = os.path.splitext(full_path)[0] + "_meta.json"
+        if os.path.exists(meta_path):
+            os.remove(meta_path)
+        
+        return {"success": True, "message": f"模型 {model_path} 已删除"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"删除模型失败: {str(e)}")
+
+@app.post("/api/models/{model_path:path}/activate")
+async def activate_model(model_path: str):
+    """激活指定的模型（设置为当前使用的模型）"""
+    global MODEL, FEATURE_COLS
+    
+    try:
+        full_path = f"../model/{model_path}"
+        if not os.path.exists(full_path):
+            raise HTTPException(status_code=404, detail=f"模型文件不存在: {model_path}")
+        
+        if not MODELS_AVAILABLE:
+            # 使用传统方式加载模型
+            MODEL = joblib.load(full_path)
+            
+            # 尝试加载特征列
+            feature_cols_path = Path("../model/feature_cols.joblib")
+            if feature_cols_path.exists():
+                FEATURE_COLS = joblib.load(feature_cols_path)
+        else:
+            # 使用模型工厂加载模型
+            MODEL = ModelFactory.load_model(full_path)
+            
+            # 从模型中获取特征列
+            if hasattr(MODEL, 'feature_names') and MODEL.feature_names is not None:
+                FEATURE_COLS = MODEL.feature_names
+        
+        return {"success": True, "message": f"模型 {model_path} 已激活"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"激活模型失败: {str(e)}")
+
 # Vercel部署支持
 from mangum import Mangum
 handler = Mangum(app)
@@ -1098,4 +1412,4 @@ if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8000))
     uvicorn.run("main:app", host="127.0.0.1", port=port, reload=False)  # 设置reload=False
 ##
-#python main.py
+#python main.pyM
