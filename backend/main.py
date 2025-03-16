@@ -190,6 +190,10 @@ async def lifespan(app: FastAPI):
     
     print("=== 开始应用生命周期管理 ===")
     
+    # 将相对路径转换为绝对路径，确保跨平台一致性
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    model_dir = os.path.join(base_dir, 'model')
+    
     # 尝试修复模型文件权限问题
     source_model_path = os.path.join(base_dir, 'model', 'xgb_model.joblib')
     backup_model_path = os.path.join(base_dir, 'model', 'xgb_model_backup.joblib')
@@ -235,10 +239,6 @@ async def lifespan(app: FastAPI):
     if PROJECT_API_AVAILABLE:
         init_project_api(app)
         print("已注册项目管理API路由")
-    
-    # 将相对路径转换为绝对路径，确保跨平台一致性
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    model_dir = os.path.join(base_dir, 'model')
     
     # 确保模型目录存在
     os.makedirs(model_dir, exist_ok=True)
