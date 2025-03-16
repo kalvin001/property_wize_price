@@ -107,13 +107,16 @@ class PredictionResult(NumpyBaseModel):
     feature_importance: List[Dict[str, Any]]
 
 # 全局变量
-MODEL_PATH = Path("../model/xgb_model.joblib")  # 更新为XGBoost模型路径
+# 将相对路径改为使用绝对路径
+base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+model_dir = os.path.join(base_dir, 'model')
+MODEL_PATH = Path(os.path.join(model_dir, "xgb_model.joblib"))
+
 # 备选路径，以防主路径不工作
 ALTERNATE_MODEL_PATHS = [
-    Path("model/xgb_model.joblib"),
-    Path("./model/xgb_model.joblib"),
-    Path("../../model/xgb_model.joblib"),
-    Path(os.path.abspath("../model/xgb_model.joblib"))
+    Path(os.path.join(model_dir, "xgb_model.joblib")),
+    Path(os.path.join(os.getcwd(), "model", "xgb_model.joblib")),
+    Path(os.path.join(os.path.dirname(os.getcwd()), "model", "xgb_model.joblib"))
 ]
 FEATURE_COLS = []
 MODEL = None
@@ -179,8 +182,15 @@ async def lifespan(app: FastAPI):
         init_project_api(app)
         print("已注册项目管理API路由")
     
-    # 加载模型
-    model_file = os.path.join('model', 'xgboost_model.pkl')
+    # 将相对路径转换为绝对路径，确保跨平台一致性
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    model_dir = os.path.join(base_dir, 'model')
+    
+    # 确保模型目录存在
+    os.makedirs(model_dir, exist_ok=True)
+    print(f"模型目录路径: {model_dir}")
+    
+    model_file = os.path.join(model_dir, 'xgboost_model.pkl')
     
     # 优先使用ModelFactory获取模型
     if MODELS_AVAILABLE:
@@ -203,7 +213,7 @@ async def lifespan(app: FastAPI):
                 print("ModelFactory没有get_active_model方法，尝试获取最新模型")
                 try:
                     # 获取所有模型并选择最新的一个
-                    models = ModelFactory.list_models("../model")
+                    models = ModelFactory.list_models(model_dir)
                     if models and len(models) > 0:
                         # 按创建时间排序
                         sorted_models = sorted(models, key=lambda x: os.path.getmtime(x["path"]) if "path" in x else 0, reverse=True)
@@ -243,7 +253,7 @@ async def lifespan(app: FastAPI):
     
     # 尝试加载特征列
     try:
-        feature_cols_path = os.path.join('../model', 'feature_cols.joblib')
+        feature_cols_path = os.path.join(model_dir, 'feature_cols.joblib')
         if os.path.exists(feature_cols_path):
             FEATURE_COLS = joblib.load(feature_cols_path)
             print(f"已从{feature_cols_path}加载特征列，共{len(FEATURE_COLS)}列")
@@ -410,11 +420,31 @@ async def health_check():
 async def model_info():
     """获取模型信息"""
     if MODEL is None:
-        # 不抛出错误，而是返回模型未加载的信息
+        # 获取可能的模型路径用于诊断
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        model_dir = os.path.join(base_dir, 'model')
+        
+        # 检查模型目录是否存在
+        dir_exists = os.path.exists(model_dir)
+        file_paths = []
+        
+        if dir_exists:
+            try:
+                # 列出模型目录中的文件
+                file_paths = os.listdir(model_dir)
+            except Exception as e:
+                file_paths = [f"读取目录错误: {str(e)}"]
+        
         return {
             "model_type": "XGBRegressor",
             "model_loaded": False,
-            "detail": "模型尚未加载，请检查模型文件路径"
+            "detail": "模型尚未加载，请检查模型文件路径",
+            "diagnostics": {
+                "model_dir": model_dir,
+                "dir_exists": dir_exists,
+                "files": file_paths,
+                "os_type": platform.system()
+            }
         }
     
     try:
@@ -1300,8 +1330,13 @@ async def list_models():
 async def train_model(request: ModelTrainingRequest):
     """训练新模型"""
     try:
-        if not MODELS_AVAILABLE:
-            raise HTTPException(status_code=400, detail="模型模块不可用，无法训练新模型")
+        # 确保model目录存在
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        model_dir = os.path.join(base_dir, 'model')
+        os.makedirs(model_dir, exist_ok=True)
+        
+        # 使用绝对路径
+        model_path = os.path.join(model_dir, f"{request.model_type}_model.joblib")
         
         # 读取数据
         data_path = "../resources/house_samples_features.csv"
@@ -1321,9 +1356,6 @@ async def train_model(request: ModelTrainingRequest):
             random_state=request.random_state,
             params=request.params
         )
-        
-        # 构建响应
-        model_path = f"../model/{request.model_type}_model.joblib"
         
         return ModelTrainingResponse(
             success=True,
@@ -1357,7 +1389,10 @@ async def get_model_params(model_type: str):
 async def delete_model(model_path: str):
     """删除指定的模型文件"""
     try:
-        full_path = f"../model/{model_path}"
+        # 使用绝对路径
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        full_path = os.path.join(base_dir, "model", model_path)
+        
         if not os.path.exists(full_path):
             raise HTTPException(status_code=404, detail=f"模型文件不存在: {model_path}")
         
@@ -1375,11 +1410,14 @@ async def delete_model(model_path: str):
 
 @app.post("/api/models/{model_path:path}/activate")
 async def activate_model(model_path: str):
-    """激活指定的模型（设置为当前使用的模型）"""
-    global MODEL, FEATURE_COLS
+    """激活指定的模型文件"""
+    global MODEL
     
     try:
-        full_path = f"../model/{model_path}"
+        # 使用绝对路径
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        full_path = os.path.join(base_dir, "model", model_path)
+        
         if not os.path.exists(full_path):
             raise HTTPException(status_code=404, detail=f"模型文件不存在: {model_path}")
         
