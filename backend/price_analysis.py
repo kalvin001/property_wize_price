@@ -1188,3 +1188,7 @@ def generate_test_distances(count: int = 5) -> List[float]:
     random.shuffle(distances)
     
     return distances[:count] 
+
+
+if __name__ == "__main__":
+    find_comparable_properties(row=None, prop_id=None, properties_df=None)

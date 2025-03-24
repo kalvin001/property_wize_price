@@ -1,6 +1,144 @@
 {
-  "mse": 927562428344.8613,
   "rmse": 963100.4248492788,
   "mae": 376991.3670771448,
-  "r2": 0.668792689143032
+  "r2_score": 0.668792689143032,
+  "mse": 927562428344.8613,
+  "median_ae": 230265.45228186878,
+  "explained_variance": 0.6688021075945677,
+  "cv_rmse": 963100.4248492788,
+  "predictions": [
+    2584814.1393845445,
+    25926.36528048315,
+    2069920.3652804832,
+    1654541.317711114,
+    3489330.9575351086,
+    2432726.773320339,
+    1317182.3652804834,
+    2287158.804864435,
+    1140772.08291056,
+    1084732.3652804834
+  ],
+  "median_percentage_error": 14.141093698275824,
+  "mean_percentage_error": 19.92566399915807,
+  "error_distribution": {
+    "percentiles": {
+      "p10": 2.7018974113124967,
+      "p25": 6.715927013172716,
+      "p50": 14.141093698275824,
+      "p75": 24.664704977901764,
+      "p90": 38.154392383392555
+    },
+    "error_ranges": {
+      "<5%": 0.1856549154485526,
+      "5-10%": 0.17970765262252794,
+      "10-15%": 0.1614359415305245,
+      "15-20%": 0.12790197764402408,
+      ">20%": 0.3452995127543709
+    }
+  },
+  "feature_importance": [
+    {
+      "feature": "attic_level_bedroom_cnt",
+      "importance": 4.371636337633728e+17
+    },
+    {
+      "feature": "sloped_roof_bedroom_cnt",
+      "importance": 4.3716363376334336e+17
+    },
+    {
+      "feature": "sloped_roof_bedroom_images_cnt",
+      "importance": 4.694658715878934e+16
+    },
+    {
+      "feature": "locality_id",
+      "importance": 2860093872.01057
+    },
+    {
+      "feature": "street_id",
+      "importance": 2859774317.2392
+    },
+    {
+      "feature": "balcony_verandah_area",
+      "importance": 589041659.8003014
+    },
+    {
+      "feature": "verandah_area",
+      "importance": 573784878.0082307
+    },
+    {
+      "feature": "balcony_area",
+      "importance": 116255965.00999475
+    },
+    {
+      "feature": "internal_area",
+      "importance": 55356818.07146013
+    },
+    {
+      "feature": "living_space_area",
+      "importance": 35238621.57648271
+    },
+    {
+      "feature": "mainbuilding_bedrooms_area",
+      "importance": 18629249.73555319
+    },
+    {
+      "feature": "other_area",
+      "importance": 14210407.650732458
+    },
+    {
+      "feature": "land_value",
+      "importance": 742593.3833878151
+    },
+    {
+      "feature": "building_age",
+      "importance": 711623.0897234678
+    },
+    {
+      "feature": "building_year_mix",
+      "importance": 684326.7821091413
+    },
+    {
+      "feature": "sector_median",
+      "importance": 480897.8326829773
+    },
+    {
+      "feature": "locality_name",
+      "importance": 360629.7331758598
+    },
+    {
+      "feature": "bedroom_cnt",
+      "importance": 357516.44297760725
+    },
+    {
+      "feature": "storage_area",
+      "importance": 168929.16523963213
+    },
+    {
+      "feature": "luxury_level_desc_score",
+      "importance": 153498.29804830352
+    }
+  ],
+  "comparison": {
+    "all_features": {
+      "rmse": 963100.4248492788,
+      "mae": 376991.3670771448,
+      "r2_score": 0.668792689143032
+    },
+    "selected_features": {
+      "rmse": 963100.4248492788,
+      "mae": 376991.3670771448,
+      "r2_score": 0.668792689143032
+    }
+  },
+  "performance": {
+    "rmse": 963100.4248492788,
+    "mae": 376991.3670771448,
+    "r2": 0.668792689143032
+  },
+  "parameters": {
+    "copy_X": true,
+    "fit_intercept": true,
+    "n_jobs": null,
+    "positive": false
+  }
 }

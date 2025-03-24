@@ -1,6 +1,150 @@
 {
-  "mse": 927989211712.8481,
-  "rmse": 963321.9667965889,
-  "mae": 376736.2091499702,
-  "r2": 0.6686402964120309
+  "rmse": 963323.2143709023,
+  "mae": 376733.8023109563,
+  "r2_score": 0.6686394381400582,
+  "mse": 927991615345.8873,
+  "median_ae": 229445.27961505624,
+  "explained_variance": 0.6686489515971702,
+  "cv_rmse": 963323.2143709023,
+  "predictions": [
+    2585815.2285961835,
+    18149.459570189007,
+    2058388.0619123618,
+    1653169.5194984423,
+    3456373.242326632,
+    2439308.086577704,
+    1315843.1490863138,
+    2315221.7507182164,
+    1128757.61180036,
+    1084044.5248963784
+  ],
+  "median_percentage_error": 14.11258507596796,
+  "mean_percentage_error": 19.892791249374554,
+  "error_distribution": {
+    "percentiles": {
+      "p10": 2.6644466918891627,
+      "p25": 6.633154448876472,
+      "p50": 14.11258507596796,
+      "p75": 24.62626688022301,
+      "p90": 38.032957148102284
+    },
+    "error_ranges": {
+      "<5%": 0.18766122098022356,
+      "5-10%": 0.17805961593579822,
+      "10-15%": 0.15885640584694755,
+      "15-20%": 0.1299799369446833,
+      ">20%": 0.34544282029234735
+    }
+  },
+  "feature_importance": [
+    {
+      "feature": "internal_area",
+      "importance": 803207.5062854601
+    },
+    {
+      "feature": "land_value",
+      "importance": 742073.7119264256
+    },
+    {
+      "feature": "sector_median",
+      "importance": 480654.8147104961
+    },
+    {
+      "feature": "building_age",
+      "importance": 383152.179355287
+    },
+    {
+      "feature": "living_space_area",
+      "importance": 364772.41709406755
+    },
+    {
+      "feature": "bedroom_cnt",
+      "importance": 358021.34248651366
+    },
+    {
+      "feature": "building_year_mix",
+      "importance": 357157.77334766375
+    },
+    {
+      "feature": "mainbuilding_bedrooms_area",
+      "importance": 306340.2089752852
+    },
+    {
+      "feature": "locality_name",
+      "importance": 296231.9242298483
+    },
+    {
+      "feature": "locality_id",
+      "importance": 291448.5265067159
+    },
+    {
+      "feature": "storage_area",
+      "importance": 168297.33792791422
+    },
+    {
+      "feature": "luxury_level_desc_score",
+      "importance": 160296.7038184689
+    },
+    {
+      "feature": "luxury_level_score",
+      "importance": 133994.86098541852
+    },
+    {
+      "feature": "region",
+      "importance": 125359.41538755813
+    },
+    {
+      "feature": "biggest_bedroom_area",
+      "importance": 115798.17674369754
+    },
+    {
+      "feature": "prop_bath",
+      "importance": 112818.05093726337
+    },
+    {
+      "feature": "view_quality",
+      "importance": 112290.34065028334
+    },
+    {
+      "feature": "bedroom_without_bathroom_cnt",
+      "importance": 100666.09912073829
+    },
+    {
+      "feature": "famous_designer",
+      "importance": 97286.93421149609
+    },
+    {
+      "feature": "big_sector_code",
+      "importance": 94401.41897887089
+    }
+  ],
+  "comparison": {
+    "all_features": {
+      "rmse": 963323.2143709023,
+      "mae": 376733.8023109563,
+      "r2_score": 0.6686394381400582
+    },
+    "selected_features": {
+      "rmse": 963323.2143709023,
+      "mae": 376733.8023109563,
+      "r2_score": 0.6686394381400582
+    }
+  },
+  "performance": {
+    "rmse": 963323.2143709023,
+    "mae": 376733.8023109563,
+    "r2": 0.6686394381400582
+  },
+  "parameters": {
+    "alpha": 1.0,
+    "copy_X": true,
+    "fit_intercept": true,
+    "max_iter": 1000,
+    "positive": false,
+    "precompute": false,
+    "random_state": null,
+    "selection": "cyclic",
+    "tol": 0.0001,
+    "warm_start": false
+  }
 }

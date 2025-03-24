@@ -37,40 +37,27 @@ class LinearModel(BaseModel):
         if model_type not in self.MODEL_TYPES:
             raise ValueError(f"不支持的模型类型: {model_type}，支持的类型: {list(self.MODEL_TYPES.keys())}")
         
-        self.model_type = model_type
+        self._linear_model_type = model_type
         
         # 设置默认参数
         default_params = {}
-        
-        # 根据模型类型设置特定的默认参数
         if model_type == "ridge":
-            default_params = {
-                'alpha': 1.0,
-                'random_state': 42
-            }
+            default_params = {"alpha": 1.0}
         elif model_type == "lasso":
-            default_params = {
-                'alpha': 0.1,
-                'random_state': 42
-            }
+            default_params = {"alpha": 1.0}
         elif model_type == "elasticnet":
-            default_params = {
-                'alpha': 0.1,
-                'l1_ratio': 0.5,
-                'random_state': 42
-            }
+            default_params = {"alpha": 1.0, "l1_ratio": 0.5}
         
         # 更新参数
         self.model_params = default_params.copy()
         self.model_params.update(kwargs)
         
         # 初始化模型
-        model_class = self.MODEL_TYPES[model_type]
-        self.model = model_class(**self.model_params)
+        self.model = self.MODEL_TYPES[model_type](**self.model_params)
         
         # 更新元数据
-        self.metadata["model_type"] = f"Linear-{model_type}"
-        self.metadata["params"] = self.model_params
+        self._metadata["model_type"] = f"Linear-{model_type}"
+        self._metadata["params"] = self.model_params
     
     def train(self, X_train: pd.DataFrame, y_train: pd.Series, **kwargs) -> None:
         """
@@ -88,19 +75,19 @@ class LinearModel(BaseModel):
         self.model.fit(X_train, y_train)
         
         # 更新元数据
-        self.metadata["training_params"] = kwargs
+        self._metadata["training_params"] = kwargs
         
         # 对于线性模型，保存系数作为特征重要性
         if hasattr(self.model, 'coef_'):
             coefficients = self.model.coef_
             # 如果系数是一维数组，直接使用
             if len(coefficients.shape) == 1:
-                self.metadata["coefficients"] = {
+                self._metadata["coefficients"] = {
                     feature: float(coef) for feature, coef in zip(self.feature_names, coefficients)
                 }
             # 如果是二维数组，取第一行
             elif len(coefficients.shape) == 2:
-                self.metadata["coefficients"] = {
+                self._metadata["coefficients"] = {
                     feature: float(coef) for feature, coef in zip(self.feature_names, coefficients[0])
                 }
     
@@ -133,41 +120,43 @@ class LinearModel(BaseModel):
     
     def get_feature_importance(self) -> pd.DataFrame:
         """
-        获取线性模型的特征重要性（系数的绝对值）
+        获取特征重要性（对于线性模型，使用系数作为特征重要性）
         
         Returns:
-            包含特征名称和重要性分数的DataFrame
+            特征重要性数据框，包含feature和importance两列
         """
-        if self.model is None or not hasattr(self.model, 'coef_'):
-            raise ValueError("模型尚未训练或不支持特征系数")
-            
-        # 获取系数
-        coefficients = self.model.coef_
+        if self.model is None:
+            raise ValueError("模型尚未训练，无法获取特征重要性")
         
-        # 如果系数是一维数组，直接使用
-        if len(coefficients.shape) == 1:
-            coefs = coefficients
-        # 如果是二维数组，取第一行
-        elif len(coefficients.shape) == 2:
-            coefs = coefficients[0]
+        # 获取模型系数
+        if hasattr(self.model, 'coef_'):
+            coefficients = self.model.coef_
+        else:
+            raise ValueError("模型没有系数属性，无法获取特征重要性")
         
         # 如果没有特征名称，使用默认名称
-        if self.feature_names is None:
-            feature_names = [f"feature_{i}" for i in range(len(coefs))]
+        if self._feature_names is None:
+            feature_names = [f"feature_{i}" for i in range(len(coefficients))]
         else:
-            feature_names = self.feature_names
-            
-        # 创建特征重要性DataFrame，使用系数的绝对值表示重要性
-        feature_importance = pd.DataFrame({
-            'feature': feature_names,
-            'importance': np.abs(coefs),
-            'coefficient': coefs
-        })
+            feature_names = self._feature_names
         
-        # 按重要性降序排序
-        feature_importance = feature_importance.sort_values('importance', ascending=False)
+        # 确保系数是一维数组
+        if len(coefficients.shape) > 1:
+            coefficients = coefficients[0]
         
-        return feature_importance
+        # 创建特征重要性DataFrame
+        importance_list = []
+        for feature, coef in zip(feature_names, coefficients):
+            importance_list.append({
+                "feature": feature,
+                "importance": abs(coef)  # 使用系数的绝对值作为重要性指标
+            })
+        
+        # 将列表转换为DataFrame并按重要性降序排序
+        importance_df = pd.DataFrame(importance_list)
+        importance_df = importance_df.sort_values("importance", ascending=False)
+        
+        return importance_df
     
     def get_params(self) -> Dict[str, Any]:
         """
@@ -189,11 +178,11 @@ class LinearModel(BaseModel):
         """
         if self.model is None:
             self.model_params.update(params)
-            model_class = self.MODEL_TYPES[self.model_type]
+            model_class = self.MODEL_TYPES[self._linear_model_type]
             self.model = model_class(**self.model_params)
         else:
             self.model.set_params(**params)
             self.model_params.update(params)
         
         # 更新元数据
-        self.metadata["params"] = self.model_params 
+        self._metadata["params"] = self.model_params 

@@ -1,77 +1,109 @@
-# 房产估价分析系统
+# 房产价格预测系统
 
-这是一个基于机器学习的房产估价分析系统，使用XGBoost算法构建预测模型，并提供可解释性分析。
+基于机器学习的房产价格预测系统，通过特征工程和多种模型训练来提供准确的房产价格估算。
 
 ## 项目结构
 
-```
-project/
-├── backend/                # FastAPI后端
-│   ├── main.py             # 主应用文件
-│   └── requirements.txt    # Python依赖
-├── frontend/               # Next.js前端
-│   ├── pages/              # 页面组件
-│   ├── components/         # 可复用组件
-│   ├── styles/             # 样式文件
-│   ├── public/             # 静态资源
-│   └── package.json        # npm依赖
-├── model/                  # 模型文件（不包含在Git仓库中）
-│   ├── xgb_model.joblib    # XGBoost模型
-│   ├── feature_cols.joblib # 特征列名
-│   └── optimizer_logs/     # 参数优化日志
-└── resources/              # 数据资源
-    └── house_samples_features.csv  # 房产特征数据
-```
+- `feature_engineering.py`: 特征工程脚本，用于处理原始数据并创建新特征
+- `train_models.py`: 原始模型训练脚本
+- `train_models_enhanced.py`: 增强版模型训练脚本，使用经过特征工程的数据
+- `run_feature_engineering_and_models.py`: 完整工作流脚本，从特征工程到模型训练和评估
+- `models/`: 模型定义目录
+- `resources/`: 数据资源目录
+- `model/`: 基础模型输出目录
+- `model_enhanced/`: 增强模型输出目录
 
-## 优化模型训练与分析
+## 特征工程
 
-本项目强调模型的优化和可解释性，主要包括以下功能：
+特征工程脚本(`feature_engineering.py`)通过以下步骤优化原始数据：
 
-1. **参数优化**：支持网格搜索和贝叶斯优化两种方式进行XGBoost参数搜索
-2. **特征选择**：使用递归特征消除(RFECV)优化特征子集
-3. **优化过程可视化**：记录并可视化每次参数搜索的结果
-4. **模型解释性分析**：使用SHAP值解释模型预测
+1. **数据加载**: 读取原始数据集
+2. **处理缺失值**: 根据各列特性处理缺失值
+3. **新特征创建**: 生成多种新特征，包括：
+   - 价格比率特征（如价格与土地价值比）
+   - 区域特征（区域溢价指数等）
+   - 空间特征组合
+   - 属性特征衍生
+4. **异常值处理**: 使用Z分数方法识别和处理异常值
+5. **特征编码**: 对分类特征进行编码
+6. **低方差特征移除**: 移除对预测贡献小的特征
 
-### 运行优化和训练
+## 模型训练
 
-使用`run_analysis.py`脚本可以轻松运行模型优化和训练：
+支持多种模型类型，包括：
 
-```bash
-# 使用默认配置(贝叶斯优化)
-python run_analysis.py
+- XGBoost
+- LightGBM
+- CatBoost
+- 随机森林
 
-# 使用快速配置(网格搜索，更少的参数组合)
-python run_analysis.py --preset quick
-
-# 使用彻底配置(更多迭代次数，更精细的参数搜索)
-python run_analysis.py --preset thorough
-
-# 使用自定义参数
-python run_analysis.py --custom_args "--optimization bayes --cv_folds 5 --bayes_iterations 30"
-```
-
-### 可视化和分析优化结果
+### 基础版模型训练
 
 ```bash
-# 可视化最近一次的优化结果
-python run_analysis.py --visualize
-
-# 可视化指定目录的优化结果
-python run_analysis.py --log_dir model/optimizer_logs/20230615_120000_bayes
+python train_models.py --model_types xgboost lightgbm
 ```
 
-可视化结果将保存在优化日志目录下的`analysis`子目录中，包括：
-- 优化进度图：RMSE随迭代次数的变化
-- 参数影响图：每个参数对模型性能的影响
-- 迭代数据表：CSV格式的详细迭代记录
+### 增强版模型训练
 
-## 功能特点
+使用特征工程后的数据：
 
-1. **房产估价预测**：基于房产的多种特征，预测房产价格
-2. **可解释性分析**：使用SHAP值解释哪些特征对价格有影响
-3. **特征重要性排名**：展示最重要的房产特征及其影响程度
-4. **样本分析**：展示典型房产的估价分析和误差解释
-5. **参数优化记录**：记录每次优化的搜索轨迹和结果
+```bash
+python train_models_enhanced.py --data_file resources/house_samples_engineered.csv --output_dir model_enhanced --feature_selection
+```
+
+## 完整工作流
+
+一键运行从特征工程到模型训练和评估的完整流程：
+
+```bash
+python run_feature_engineering_and_models.py --model_types xgboost lightgbm
+```
+
+可选参数：
+- `--skip_feature_engineering`: 跳过特征工程步骤
+- `--skip_outlier_handling`: 特征工程中跳过离群值处理
+- `--feature_selection`: 启用特征选择
+- `--top_n_features`: 指定使用的特征数量
+
+## 评估指标
+
+模型评估使用多种指标：
+
+- RMSE (均方根误差)
+- MAE (平均绝对误差)
+- R² (决定系数)
+- 平均百分比误差
+- 中位百分比误差
+- 误差分布（各百分位数和误差范围分布）
+
+## 环境要求
+
+- Python 3.8+
+- pandas, numpy, scikit-learn
+- XGBoost, LightGBM, CatBoost (可选)
+- matplotlib, seaborn (可视化，可选)
+
+## 使用说明
+
+1. 确保已安装所有依赖：
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+2. 运行特征工程：
+   ```bash
+   python feature_engineering.py
+   ```
+
+3. 训练模型：
+   ```bash
+   python train_models_enhanced.py
+   ```
+
+4. 或者一键执行完整流程：
+   ```bash
+   python run_feature_engineering_and_models.py
+   ```
 
 ## 技术栈
 
@@ -97,10 +129,10 @@ python run_analysis.py --log_dir model/optimizer_logs/20230615_120000_bayes
 
 ```bash
 # 分析数据并训练模型
-python run_analysis.py
+python run_feature_engineering_and_models.py
 
 # 或直接运行底层脚本
-python analyze_data.py --optimization bayes --feature_selection --bayes_iterations 20
+python train_models_enhanced.py
 ```
 
 ### 后端
@@ -158,4 +190,4 @@ git push -u origin main
 3. 配置构建设置：
    - 前端构建命令: `cd frontend && npm install && npm run build`
    - 输出目录: `frontend/.next`
-   - 构建前运行: `python analyze_data.py` (生成模型文件) 
+   - 构建前运行: `python train_models_enhanced.py` (生成模型文件) 

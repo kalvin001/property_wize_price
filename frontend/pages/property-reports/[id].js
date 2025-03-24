@@ -23,7 +23,8 @@ import {
   Image,
   Empty,
   notification,
-  Tabs
+  Tabs,
+  Select
 } from 'antd';
 import { 
   HomeOutlined, 
@@ -57,42 +58,83 @@ export default function PropertyDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('1');
+  const [comparableProperties, setComparableProperties] = useState([]);
+  const [featureImportance, setFeatureImportance] = useState([]);
+  const [neighborhoodStats, setNeighborhoodStats] = useState({});
+  const [modelList, setModelList] = useState([]);
+  const [selectedModel, setSelectedModel] = useState('');
+  const [modelLoading, setModelLoading] = useState(false);
 
   // 获取房产详情
   useEffect(() => {
-    if (!id) return;
-    
-    const fetchPropertyDetail = async () => {
-      setLoading(true);
-      setError(null);
-      
-      try {
-        const response = await fetch(`/api/properties/${id}`);
-        
-        if (!response.ok) {
-          if (response.status === 404) {
-            throw new Error('找不到该房产信息');
-          } else {
-            throw new Error(`请求失败: ${response.status}`);
-          }
-        }
-        
-        const data = await response.json();
-        setProperty(transformPropertyDetail(data));
-      } catch (err) {
-        console.error('获取房产详情失败:', err);
-        setError(err.message || '加载房产详情失败');
-        notification.error({
-          message: '数据加载失败',
-          description: err.message || '获取房产详情出错'
-        });
-      } finally {
-        setLoading(false);
+    if (router.isReady && id) {
+      fetchPropertyDetail(id);
+      fetchModelList();
+    }
+  }, [router.isReady, id]);
+
+  // 获取可用的模型列表
+  const fetchModelList = async () => {
+    setModelLoading(true);
+    try {
+      const response = await fetch('/api/models');
+      if (!response.ok) {
+        throw new Error(`请求失败: ${response.status}`);
       }
-    };
-    
-    fetchPropertyDetail();
-  }, [id]);
+      const data = await response.json();
+      setModelList(data.models || []);
+    } catch (err) {
+      console.error('获取模型列表失败:', err);
+      notification.error({
+        message: '模型列表加载失败',
+        description: err.message || '获取模型列表出错'
+      });
+    } finally {
+      setModelLoading(false);
+    }
+  };
+
+  // 处理模型选择变化
+  const handleModelChange = (value) => {
+    setSelectedModel(value);
+    fetchPropertyDetail(id, value);
+  };
+  
+  // 获取房产详情
+  const fetchPropertyDetail = async (propertyId, modelName = '') => {
+    setLoading(true);
+    try {
+      // 构建API请求URL
+      let url = `/api/properties/${propertyId}`;
+      if (modelName) {
+        url += `?model=${encodeURIComponent(modelName)}`;
+      }
+      
+      const response = await fetch(url);
+      
+      if (!response.ok) {
+        throw new Error(`请求失败: ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      // 更新状态
+      setProperty(data);
+      setComparableProperties(data.comparable_properties || []);
+      setFeatureImportance(data.feature_importance || []);
+      setNeighborhoodStats(data.neighborhood_stats || {});
+      
+    } catch (err) {
+      console.error('获取房产数据失败:', err);
+      setError('加载房产数据失败，请稍后再试。');
+      notification.error({
+        message: '数据加载失败',
+        description: err.message || '获取房产详情出错'
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // 获取URL中的tab参数并设置激活的标签
   useEffect(() => {
@@ -555,6 +597,21 @@ export default function PropertyDetail() {
             <Title level={2}>{property.address}</Title>
             <Space>
               {/* <Button type="primary" icon={<ExportOutlined />} onClick={exportToPdf}>导出PDF报告</Button> */}
+              <Select
+                placeholder="选择预测模型"
+                style={{ width: '180px' }}
+                onChange={handleModelChange}
+                value={selectedModel}
+                loading={modelLoading}
+                allowClear
+              >
+                <Select.Option value="">默认模型</Select.Option>
+                {modelList.map(model => (
+                  <Select.Option key={model.name} value={model.name}>
+                    {model.name} ({model.type})
+                  </Select.Option>
+                ))}
+              </Select>
               <Button type="default" icon={<ArrowLeftOutlined />}>
                 <Link href="/property-reports">返回列表</Link>
               </Button>

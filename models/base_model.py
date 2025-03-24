@@ -13,28 +13,40 @@ class BaseModel(ModelInterface):
     基础模型类，实现模型接口中共有的方法
     """
     
-    def __init__(self, name: str = "base_model", **kwargs):
+    def __init__(self, name: str = "base_model", model_path: str = None, **kwargs):
         """
         初始化基础模型
         
         Args:
             name: 模型名称
+            model_path: 模型保存路径
             **kwargs: 其他初始化参数
         """
+        super().__init__(model_path=model_path)
         self.name = name
         self.model = None
-        self.feature_names = None
-        self.metadata = {
+        self._feature_names = None
+        self._metadata = {
             "model_type": self.__class__.__name__,
             "params": kwargs
         }
+    
+    @property
+    def model_type(self) -> str:
+        """
+        获取模型类型
+        
+        Returns:
+            模型类型字符串
+        """
+        return self._metadata.get("model_type", self.__class__.__name__)
     
     def train(self, X_train: pd.DataFrame, y_train: pd.Series, **kwargs) -> None:
         """
         训练模型 - 在子类中实现
         """
-        self.feature_names = X_train.columns.tolist()
-        self.metadata["feature_names"] = self.feature_names
+        self._feature_names = X_train.columns.tolist()
+        self._metadata["feature_names"] = self._feature_names
     
     def predict(self, X: pd.DataFrame) -> np.ndarray:
         """
@@ -48,65 +60,84 @@ class BaseModel(ModelInterface):
         评估模型性能
         
         Args:
-            X_test: 测试数据特征
-            y_test: 测试数据标签
+            X_test: 测试集特征
+            y_test: 测试集标签
             
         Returns:
-            包含评估指标的字典，如 RMSE, MAE, R² 等
+            包含各种评估指标的字典
         """
         if self.model is None:
             raise ValueError("模型尚未训练")
-            
+        
+        # 进行预测
         y_pred = self.predict(X_test)
         
+        # 计算评估指标
         mse = mean_squared_error(y_test, y_pred)
         rmse = np.sqrt(mse)
         mae = mean_absolute_error(y_test, y_pred)
         r2 = r2_score(y_test, y_pred)
         
+        # 计算MAPE (Mean Absolute Percentage Error)
+        mape = np.mean(np.abs((y_test - y_pred) / y_test)) * 100
+        
+        # 保存评估结果
         metrics = {
-            "mse": mse,
-            "rmse": rmse,
-            "mae": mae,
-            "r2": r2
+            "mse": float(mse),
+            "rmse": float(rmse),
+            "mae": float(mae),
+            "r2": float(r2),
+            "mape": float(mape)
         }
         
-        # 更新模型元数据
-        self.metadata["metrics"] = metrics
+        # 更新元数据
+        self._metadata["metrics"] = metrics
         
         return metrics
     
-    def save(self, path: str) -> None:
+    def save(self, path: Optional[str] = None) -> str:
         """
-        保存模型到指定路径
+        保存模型
         
         Args:
-            path: 保存路径
-        """
-        if self.model is None:
-            raise ValueError("模型尚未训练，无法保存")
+            path: 保存路径，如果为None则使用默认路径
             
-        # 确保目录存在
+        Returns:
+            模型保存的文件路径
+        """
+        if path is None:
+            if self._model_path:
+                path = self._model_path
+            else:
+                # 默认保存路径
+                path = f"model/{self.name}.joblib"
+        
+        # 创建目录（如果不存在）
         os.makedirs(os.path.dirname(path), exist_ok=True)
         
-        # 保存模型和元数据
-        model_data = {
+        # 将模型和元数据一起保存
+        save_data = {
             "model": self.model,
-            "metadata": self.metadata,
-            "feature_names": self.feature_names
+            "metadata": self._metadata,
+            "feature_names": self._feature_names
         }
         
-        joblib.dump(model_data, path)
+        joblib.dump(save_data, path)
         
-        # 保存模型元数据为JSON（用于前端展示）
+        # 同时保存元数据为JSON格式
         meta_path = os.path.splitext(path)[0] + "_meta.json"
         with open(meta_path, 'w') as f:
-            json.dump(self.metadata, f, indent=2)
+            json.dump(self._metadata, f, indent=2)
+        
+        # 更新模型路径
+        self._model_path = path
+        
+        return path
     
     @classmethod
     def load(cls, path: str) -> 'BaseModel':
         """
-        从指定路径加载模型
+        加载模型
         
         Args:
             path: 模型文件路径
@@ -114,27 +145,46 @@ class BaseModel(ModelInterface):
         Returns:
             加载的模型实例
         """
-        if not os.path.exists(path):
-            raise FileNotFoundError(f"模型文件不存在: {path}")
+        try:
+            # 加载模型数据
+            load_data = joblib.load(path)
             
-        model_data = joblib.load(path)
-        
-        # 创建模型实例
-        instance = cls()
-        instance.model = model_data["model"]
-        instance.metadata = model_data["metadata"]
-        instance.feature_names = model_data["feature_names"]
-        
-        return instance
+            # 创建模型实例
+            model_instance = cls()
+            
+            # 恢复模型属性
+            if isinstance(load_data, dict):
+                model_instance.model = load_data.get("model")
+                model_instance._metadata = load_data.get("metadata", {})
+                model_instance._feature_names = load_data.get("feature_names", [])
+            else:
+                # 兼容旧格式 - 直接加载模型
+                model_instance.model = load_data
+            
+            # 设置模型路径
+            model_instance._model_path = path
+            
+            return model_instance
+        except Exception as e:
+            raise ValueError(f"加载模型失败: {str(e)}")
     
     def get_params(self) -> Dict[str, Any]:
         """
-        获取模型参数 - 在子类中实现
+        获取模型参数
+        
+        Returns:
+            模型参数字典
         """
-        return {}
+        return self._metadata.get("params", {})
     
     def set_params(self, **params) -> None:
         """
-        设置模型参数 - 在子类中实现
+        设置模型参数
+        
+        Args:
+            **params: 要设置的参数
         """
-        pass 
+        if "params" not in self._metadata:
+            self._metadata["params"] = {}
+        
+        self._metadata["params"].update(params) 

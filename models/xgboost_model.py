@@ -24,17 +24,23 @@ class XGBoostModel(BaseModel):
         """
         super().__init__(name=name, **kwargs)
         
-        # 设置默认参数
+        # 设置默认参数 - 优化后更强大的默认参数
         default_params = {
-            'n_estimators': 100,
-            'learning_rate': 0.1,
-            'max_depth': 5,
+            'n_estimators': 10000,
+            'learning_rate': 0.05,
+            'max_depth': 6,
+            'min_child_weight': 3,
+            'gamma': 0.1,
             'subsample': 0.8,
             'colsample_bytree': 0.8,
-            'reg_alpha': 0,
-            'reg_lambda': 1,
+            'colsample_bylevel': 0.8,
+            'reg_alpha': 0.1,
+            'reg_lambda': 1.0,
+            'objective': 'reg:squarederror',
             'random_state': 42,
-            'n_jobs': -1
+            'n_jobs': -1,
+            'tree_method': 'hist',  # 更快的直方图算法
+            'booster': 'gbtree'
         }
         
         # 更新参数
@@ -45,8 +51,8 @@ class XGBoostModel(BaseModel):
         self.model = XGBRegressor(**self.model_params)
         
         # 更新元数据
-        self.metadata["model_type"] = "XGBoost"
-        self.metadata["params"] = self.model_params
+        self._metadata["model_type"] = "XGBoost"
+        self._metadata["params"] = self.model_params
     
     def train(self, X_train: pd.DataFrame, y_train: pd.Series, **kwargs) -> None:
         """
@@ -82,9 +88,9 @@ class XGBoostModel(BaseModel):
         )
         
         # 更新元数据
-        self.metadata["training_params"] = train_params
+        self._metadata["training_params"] = train_params
         if hasattr(self.model, 'best_iteration') and self.model.best_iteration is not None:
-            self.metadata["best_iteration"] = self.model.best_iteration
+            self._metadata["best_iteration"] = self.model.best_iteration
     
     def predict(self, X: pd.DataFrame) -> np.ndarray:
         """
@@ -115,33 +121,49 @@ class XGBoostModel(BaseModel):
     
     def get_feature_importance(self) -> pd.DataFrame:
         """
-        获取XGBoost模型的特征重要性
+        获取特征重要性
         
         Returns:
-            包含特征名称和重要性分数的DataFrame
+            特征重要性数据框，包含feature和importance两列
         """
-        if self.model is None or not hasattr(self.model, 'feature_importances_'):
-            raise ValueError("模型尚未训练或不支持特征重要性")
-            
+        if self.model is None:
+            raise ValueError("模型尚未训练，无法获取特征重要性")
+        
         # 获取特征重要性
-        importances = self.model.feature_importances_
+        importance_type = 'gain'  # 可选: 'weight', 'gain', 'cover', 'total_gain', 'total_cover'
+        feature_importances = self.model.get_booster().get_score(importance_type=importance_type)
         
-        # 如果没有特征名称，使用默认名称
-        if self.feature_names is None:
-            feature_names = [f"feature_{i}" for i in range(len(importances))]
-        else:
-            feature_names = self.feature_names
+        # 将特征重要性转换为DataFrame
+        if not feature_importances:
+            # 如果没有获取到特征重要性，可能是因为模型太简单或特征未使用
+            # 创建一个空的DataFrame
+            return pd.DataFrame(columns=["feature", "importance"])
             
-        # 创建特征重要性DataFrame
-        feature_importance = pd.DataFrame({
-            'feature': feature_names,
-            'importance': importances
-        })
+        # 创建重要性列表
+        importance_list = []
+        for feature, importance in feature_importances.items():
+            # 在XGBoost中，特征名称可能是f0, f1, f2等格式
+            # 如果有原始特征名称，尝试映射回去
+            feature_name = feature
+            if feature.startswith('f') and feature[1:].isdigit():
+                # 尝试将f0, f1等映射回原始特征名称
+                try:
+                    index = int(feature[1:])
+                    if self._feature_names and index < len(self._feature_names):
+                        feature_name = self._feature_names[index]
+                except:
+                    pass
+                    
+            importance_list.append({
+                "feature": feature_name,
+                "importance": importance
+            })
         
-        # 按重要性降序排序
-        feature_importance = feature_importance.sort_values('importance', ascending=False)
+        # 将列表转换为DataFrame并按重要性降序排序
+        importance_df = pd.DataFrame(importance_list)
+        importance_df = importance_df.sort_values("importance", ascending=False)
         
-        return feature_importance
+        return importance_df
     
     def get_params(self) -> Dict[str, Any]:
         """
@@ -169,4 +191,4 @@ class XGBoostModel(BaseModel):
             self.model_params.update(params)
         
         # 更新元数据
-        self.metadata["params"] = self.model_params 
+        self._metadata["params"] = self.model_params 

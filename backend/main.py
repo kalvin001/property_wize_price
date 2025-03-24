@@ -22,6 +22,8 @@ from reportlab.pdfbase.ttfonts import TTFont
 import platform
 import sys
 from contextlib import asynccontextmanager
+import glob
+import math
 
 # 添加项目根目录到sys.path
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -554,7 +556,15 @@ def convert_numpy_types(obj):
     if isinstance(obj, np.integer):
         return int(obj)
     elif isinstance(obj, np.floating):
+        # 处理非法JSON浮点值（NaN、Infinity等）
+        if np.isnan(obj) or np.isinf(obj):
+            return None
         return float(obj)
+    elif isinstance(obj, float):
+        # 处理Python原生的非法JSON浮点值
+        if math.isnan(obj) or math.isinf(obj):
+            return None
+        return obj
     elif isinstance(obj, np.ndarray):
         return obj.tolist()
     elif isinstance(obj, dict):
@@ -587,81 +597,123 @@ async def health_check():
 
 @app.get("/api/model/info")
 async def model_info():
-    """获取模型信息"""
-    if MODEL is None:
-        # 获取可能的模型路径用于诊断
-        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-        model_dir = os.path.join(base_dir, 'model')
-        
-        # 检查模型目录是否存在
-        dir_exists = os.path.exists(model_dir)
-        file_paths = []
-        
-        if dir_exists:
-            try:
-                # 列出模型目录中的文件
-                file_paths = os.listdir(model_dir)
-            except Exception as e:
-                file_paths = [f"读取目录错误: {str(e)}"]
-        
-        return {
-            "model_type": "XGBRegressor",
-            "model_loaded": False,
-            "detail": "模型尚未加载，请检查模型文件路径",
-            "diagnostics": {
-                "model_dir": model_dir,
-                "dir_exists": dir_exists,
-                "files": file_paths,
-                "os_type": platform.system()
-            }
-        }
-    
+    """获取当前激活模型的信息和诊断"""
     try:
-        # 尝试从公共数据目录加载模型指标
-        metrics_path = Path("../frontend/public/data/model_metrics.json")
-        data_info_path = Path("../frontend/public/data/data_info.json")
+        model_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "model")
         
-        model_metrics = {}
-        if metrics_path.exists():
-            with open(metrics_path, 'r') as f:
-                model_metrics = json.load(f)
-                
-            # 注意：现在所有指标都已在analyze_data.py中计算，不需要在这里重新计算
-            # 如果后续有新指标需要添加，可以在这里计算
+        # 检查是否有模型被加载
+        if MODEL is None:
+            return {
+                "model_loaded": False,
+                "model_type": "XGBRegressor",
+                "model_directory": model_dir,
+                "model_files": [os.path.basename(f) for f in glob.glob(os.path.join(model_dir, "*.joblib"))],
+                "feature_count": len(FEATURE_COLS) if FEATURE_COLS is not None else 0,
+                "feature_names": FEATURE_COLS
+            }
             
-            # 如果没有特征重要性数据，但模型有feature_importances_属性，则添加
-            if "feature_importance" not in model_metrics and MODEL is not None and hasattr(MODEL, 'feature_importances_'):
-                feature_importances = MODEL.feature_importances_
-                sorted_idx = np.argsort(feature_importances)[::-1]
-                top_features = []
-                
-                for i in sorted_idx[:20]:  # 取前20个最重要的特征
-                    if i < len(FEATURE_COLS):
-                        top_features.append({
-                            "feature": FEATURE_COLS[i],
-                            "importance": float(feature_importances[i])
-                        })
-                        
-                model_metrics["feature_importance"] = top_features
+        # 获取当前激活的模型信息
+        model_type = type(MODEL).__name__ if not hasattr(MODEL, "model_type") else MODEL.model_type
+        model_path = getattr(MODEL, "model_path", "未知")
         
+        # 从模型路径中提取模型名称
+        if model_path and model_path != "未知":
+            model_name = os.path.basename(model_path).split(".")[0]
+        else:
+            # 尝试从模型类型推断模型名称
+            if "xgboost" in model_type.lower():
+                model_name = "xgboost"
+            elif "ridge" in model_type.lower():
+                model_name = "ridge"
+            elif "lasso" in model_type.lower():
+                model_name = "lasso"
+            elif "linear" in model_type.lower():
+                model_name = "linear"
+            elif "knn" in model_type.lower():
+                model_name = "knn"
+            else:
+                model_name = "xgboost"  # 默认
+        
+        # 构造模型指标文件路径
+        metrics_path = os.path.join(model_dir, f"{model_name}_metrics.json")
+        importance_path = os.path.join(model_dir, f"{model_name}_feature_importance.csv")
+        
+        # 加载模型指标
+        metrics = {}
+        if os.path.exists(metrics_path):
+            try:
+                with open(metrics_path, "r") as f:
+                    metrics = json.load(f)
+                print(f"已从{metrics_path}加载模型指标")
+            except Exception as e:
+                print(f"加载模型指标文件失败: {str(e)}")
+        
+        # 如果metrics中没有feature_importance，尝试从特征重要性文件中加载
+        if "feature_importance" not in metrics and os.path.exists(importance_path):
+            try:
+                importance_df = pd.read_csv(importance_path)
+                metrics["feature_importance"] = [
+                    {"feature": row["feature"], "importance": float(row["importance"])}
+                    for _, row in importance_df.head(20).iterrows()
+                ]
+            except Exception as e:
+                print(f"加载特征重要性文件失败: {str(e)}")
+        
+        # 如果仍然没有feature_importance，尝试从模型对象中获取
+        if "feature_importance" not in metrics and hasattr(MODEL, "get_feature_importance"):
+            try:
+                importance_df = MODEL.get_feature_importance()
+                metrics["feature_importance"] = [
+                    {"feature": row["feature"], "importance": float(row["importance"])}
+                    for _, row in importance_df.head(20).iterrows()
+                ]
+            except Exception as e:
+                print(f"从模型对象获取特征重要性失败: {str(e)}")
+        
+        # 加载数据信息
         data_info = {}
-        if data_info_path.exists():
-            with open(data_info_path, 'r') as f:
-                data_info = json.load(f)
+        data_info_path = os.path.join(model_dir, "data_info.json")
+        if os.path.exists(data_info_path):
+            try:
+                with open(data_info_path, "r") as f:
+                    data_info = json.load(f)
+            except Exception as e:
+                print(f"加载数据集信息文件失败: {str(e)}")
         
-        return {
-            "model_type": "XGBRegressor",  # 更新为XGBoost
-            "features_count": len(FEATURE_COLS),
-            "feature_names": FEATURE_COLS[:10] + ["..."] if len(FEATURE_COLS) > 10 else FEATURE_COLS,
-            "metrics": model_metrics,
-            "data_info": data_info
+        # 获取模型参数
+        model_params = {}
+        if hasattr(MODEL, "get_params"):
+            try:
+                model_params = MODEL.get_params()
+            except Exception as e:
+                print(f"获取模型参数失败: {str(e)}")
+        
+        # 构建响应数据
+        response_data = {
+            "model_loaded": True,
+            "model_name": model_name,
+            "model_type": model_type,
+            "model_path": model_path,
+            "model_directory": model_dir,
+            "model_files": [os.path.basename(f) for f in glob.glob(os.path.join(model_dir, "*.joblib"))],
+            "feature_count": len(FEATURE_COLS) if FEATURE_COLS is not None else 0,
+            "feature_names": FEATURE_COLS,
+            "metrics": metrics,
+            "data_info": data_info,
+            "parameters": model_params
         }
+        
+        # 确保返回前处理所有可能的非法JSON值
+        return convert_numpy_types(response_data)
     except Exception as e:
-        return {
-            "model_type": "XGBRegressor",  # 更新为XGBoost
-            "features_count": len(FEATURE_COLS),
-            "error": str(e)
+        error_response = {
+            "error": str(e),
+            "model_loaded": MODEL is not None,
+            "model_type": "未知",
+            "model_directory": os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "model"),
+            "feature_count": len(FEATURE_COLS) if FEATURE_COLS is not None else 0
         }
+        return convert_numpy_types(error_response)
 
 @app.get("/api/properties/sample")
 async def get_sample_properties():
@@ -781,46 +833,85 @@ async def get_properties(
     page: int = Query(1, ge=1),
     page_size: int = Query(10, ge=1, le=100),
     property_type: Optional[str] = None,
-    query: Optional[str] = None
+    query: Optional[str] = None,
+    model: Optional[str] = None
 ):
     """获取房产列表，支持分页和筛选"""
-    if PROPERTIES_DF is None:
-        raise HTTPException(status_code=404, detail="房产数据尚未加载")
+    
+    global MODEL, FEATURE_COLS
     
     try:
-        # 创建过滤后的数据副本
-        filtered_df = PROPERTIES_DF.copy()
+        if PROPERTIES_DF is None:
+            raise HTTPException(status_code=404, detail="房产数据尚未加载")
         
-        # 应用过滤条件
-        if property_type and 'prop_type' in filtered_df.columns:
-            filtered_df = filtered_df[filtered_df['prop_type'] == property_type]
-            
+        # 复制一份当前模型和特征列
+        current_model = MODEL
+        current_feature_cols = FEATURE_COLS
+        
+        # 如果指定了不同的模型，尝试加载
+        temp_model = None
+        if model:
+            try:
+                base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                model_path = os.path.join(base_dir, "model", f"{model}")
+                
+                # 检查模型文件是否存在
+                if not os.path.exists(model_path) and not os.path.exists(model_path + ".joblib"):
+                    model_path = os.path.join(base_dir, "model", f"{model}.joblib")
+                
+                # 如果模型文件存在，加载它
+                if os.path.exists(model_path):
+                    if MODELS_AVAILABLE:
+                        temp_model = ModelFactory.load_model(model_path)
+                    else:
+                        temp_model = joblib.load(model_path)
+                    
+                    # 使用临时模型的特征列（如果可用）
+                    if MODELS_AVAILABLE and hasattr(temp_model, 'feature_names') and temp_model.feature_names:
+                        current_feature_cols = temp_model.feature_names
+            except Exception as e:
+                print(f"加载指定模型失败: {str(e)}")
+                # 继续使用默认模型
+                pass
+        
+        # 创建过滤条件
+        filtered_df = PROPERTIES_DF
+        
+        # 按房产类型过滤
+        if property_type:
+            filtered_df = filtered_df[filtered_df['property_type'] == property_type]
+        
+        # 按查询字符串过滤（支持地址和ID搜索）
         if query:
-            # 搜索地址或ID
-            query_lower = query.lower()
-            address_mask = filtered_df['std_address'].str.lower().str.contains(query_lower, na=False)
-            id_mask = filtered_df['prop_id'].astype(str).str.contains(query_lower, na=False)
-            filtered_df = filtered_df[address_mask | id_mask]
+            query_condition = (
+                filtered_df['prop_id'].astype(str).str.contains(query, case=False, na=False) |
+                filtered_df['std_address'].str.contains(query, case=False, na=False)
+            )
+            filtered_df = filtered_df[query_condition]
         
-        # 计算总数
+        # 计算总记录数
         total = len(filtered_df)
         
-        # 应用分页
+        # 分页数据
         start_idx = (page - 1) * page_size
         end_idx = start_idx + page_size
-        paged_df = filtered_df.iloc[start_idx:end_idx]
         
-        # 构造响应
+        paged_df = filtered_df.iloc[start_idx:end_idx].copy()
+        
         properties = []
+        
         for _, row in paged_df.iterrows():
             # 实际的y_label价格
             actual_price = float(row.get('y_label', 0))
             
             # 计算房价预测
             pred_price = 0
-            if MODEL is not None and set(FEATURE_COLS).issubset(filtered_df.columns):
+            pred_model = temp_model if temp_model else current_model
+            feature_cols_to_use = current_feature_cols
+            
+            if pred_model is not None and set(feature_cols_to_use).issubset(filtered_df.columns):
                 try:
-                    features = row[FEATURE_COLS]
+                    features = row[feature_cols_to_use]
                     # 使用模型预测前，确保所有特征数据类型正确
                     features_df = features.to_frame().T
                     
@@ -853,7 +944,7 @@ async def get_properties(
                         features_df = features_df.drop(columns=cols_to_drop)
                     
                     # 使用模型预测
-                    pred_price = float(MODEL.predict(features_df)[0])
+                    pred_price = float(pred_model.predict(features_df)[0])
                      
                 except Exception as e:
                     print(f"预测异常: {e}") 
@@ -869,6 +960,10 @@ async def get_properties(
                         features[col] = float(val)
                     else:
                         features[col] = str(val) if not pd.isna(val) else None
+            
+            # 添加使用的模型名称到特征中
+            if model:
+                features['model_name'] = model
             
             properties.append(Property(
                 prop_id=str(row['prop_id']),
@@ -889,12 +984,44 @@ async def get_properties(
 
 # 添加获取单个房产详情的API接口
 @app.get("/api/properties/{prop_id}", response_model=PropertyDetail)
-async def get_property_detail(prop_id: str):
+async def get_property_detail(prop_id: str, model: Optional[str] = None):
     """获取单个房产的详情"""
+    global MODEL, FEATURE_COLS
+    
     if PROPERTIES_DF is None:
         raise HTTPException(status_code=404, detail="房产数据尚未加载")
     
     try:
+        # 复制一份当前模型和特征列
+        current_model = MODEL
+        current_feature_cols = FEATURE_COLS
+        
+        # 如果指定了不同的模型，尝试加载
+        temp_model = None
+        if model:
+            try:
+                base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+                model_path = os.path.join(base_dir, "model", f"{model}")
+                
+                # 检查模型文件是否存在
+                if not os.path.exists(model_path) and not os.path.exists(model_path + ".joblib"):
+                    model_path = os.path.join(base_dir, "model", f"{model}.joblib")
+                
+                # 如果模型文件存在，加载它
+                if os.path.exists(model_path):
+                    if MODELS_AVAILABLE:
+                        temp_model = ModelFactory.load_model(model_path)
+                    else:
+                        temp_model = joblib.load(model_path)
+                    
+                    # 使用临时模型的特征列（如果可用）
+                    if MODELS_AVAILABLE and hasattr(temp_model, 'feature_names') and temp_model.feature_names:
+                        current_feature_cols = temp_model.feature_names
+            except Exception as e:
+                print(f"加载指定模型失败: {str(e)}")
+                # 继续使用默认模型
+                pass
+        
         # 查找指定ID的房产
         prop_df = PROPERTIES_DF[PROPERTIES_DF['prop_id'].astype(str) == prop_id]
         
@@ -918,12 +1045,16 @@ async def get_property_detail(prop_id: str):
         # 导入备用数据生成函数
         from price_utils import generate_rule_based_importance, generate_dummy_comparables
         
+        # 使用指定的模型预测价格和计算特征重要性
+        pred_model = temp_model if temp_model else current_model
+        feature_cols_to_use = current_feature_cols
+        
         # 预测价格和计算特征重要性
         try:
             pred_price, feature_importance = predict_property_price(
                 row=row, 
-                model=MODEL, 
-                feature_cols=FEATURE_COLS, 
+                model=pred_model, 
+                feature_cols=feature_cols_to_use, 
                 properties_df=PROPERTIES_DF
             )
         except Exception as e:
@@ -940,7 +1071,7 @@ async def get_property_detail(prop_id: str):
             # 使用规则生成特征重要性
             feature_importance = generate_rule_based_importance(
                 row=row, 
-                feature_cols=FEATURE_COLS if FEATURE_COLS else [], 
+                feature_cols=feature_cols_to_use if feature_cols_to_use else [], 
                 pred_price=pred_price
             )
         
@@ -969,6 +1100,10 @@ async def get_property_detail(prop_id: str):
                     features[col] = float(val)
                 else:
                     features[col] = str(val) if not pd.isna(val) else None
+                    
+        # 添加使用的模型名称到特征中
+        if model:
+            features['model_name'] = model
         
         # 房产面积
         prop_area = float(row.get('prop_area', 100))
@@ -997,7 +1132,7 @@ async def get_property_detail(prop_id: str):
             if not property_detail.feature_importance:
                 property_detail.feature_importance = generate_rule_based_importance(
                     row=row, 
-                    feature_cols=FEATURE_COLS if FEATURE_COLS else [],
+                    feature_cols=feature_cols_to_use if feature_cols_to_use else [],
                     pred_price=pred_price
                 )
             
@@ -1015,13 +1150,13 @@ async def get_property_detail(prop_id: str):
                 address=row['std_address'],
                 predicted_price=pred_price,
                 features=features,
-                feature_importance=generate_rule_based_importance(row, FEATURE_COLS if FEATURE_COLS else [], pred_price),
+                feature_importance=generate_rule_based_importance(row, feature_cols_to_use if feature_cols_to_use else [], pred_price),
                 comparable_properties=generate_dummy_comparables(row, prop_id),
                 price_trends=generate_price_trends(pred_price),
                 price_range=calculate_price_range(pred_price),
                 neighborhood_stats=get_neighborhood_stats(pred_price, prop_area),
                 confidence_interval=calculate_confidence_interval(pred_price),
-                ai_explanation=get_model_explanation(pred_price, [], FEATURE_COLS if FEATURE_COLS else [])
+                ai_explanation=get_model_explanation(pred_price, [], feature_cols_to_use if feature_cols_to_use else [])
             )
             
             return convert_numpy_types(property_detail)
@@ -1481,15 +1616,72 @@ async def generate_simple_property_pdf(prop_id: str):
 async def list_models():
     """获取所有可用模型的列表"""
     try:
-        if not MODELS_AVAILABLE:
-            # 如果模型模块不可用，则返回空列表
-            return ModelListResponse(models=[])
+        # 获取模型目录路径
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        model_dir = os.path.join(base_dir, 'model')
         
-        # 使用ModelFactory获取所有模型
-        models = ModelFactory.list_models("../model")
+        # 查找所有metrics.json文件
+        metrics_files = glob.glob(os.path.join(model_dir, "*_metrics.json"))
         
-        # 对模型按创建时间倒序排序
-        models = sorted(models, key=lambda x: os.path.getmtime(x["path"]) if "path" in x else 0, reverse=True)
+        models = []
+        # 读取每个指标文件并提取信息
+        for metrics_file in metrics_files:
+            try:
+                model_name = os.path.basename(metrics_file).replace("_metrics.json", "")
+                
+                # 检查是否是临时文件或不需要的文件
+                if model_name.startswith("ensemble_") or model_name.startswith("stacking_"):
+                    continue  # 跳过集成模型文件
+                
+                # 读取指标文件
+                with open(metrics_file, 'r', encoding='utf-8') as f:
+                    metrics_data = json.load(f)
+                
+                # 检查此模型是否为当前激活的模型
+                model_path = os.path.join(model_dir, f"{model_name}_model.joblib")
+                is_active = MODEL_PATH.name == f"{model_name}_model.joblib" if MODEL_PATH else False
+                
+                # 计算误差小于10%的样本比例（合并<5%和5-10%）
+                error_under_10_percent = 0
+                if (metrics_data.get("error_distribution") and 
+                    metrics_data["error_distribution"].get("error_ranges")):
+                    error_ranges = metrics_data["error_distribution"]["error_ranges"]
+                    less_than_5 = error_ranges.get("<5%", 0)
+                    between_5_and_10 = error_ranges.get("5-10%", 0)
+                    error_under_10_percent = less_than_5 + between_5_and_10
+                else:
+                    # 如果没有error_ranges，尝试从metrics.json文件读取其他相关字段估算
+                    if metrics_data.get("median_percentage_error"):
+                        median_pct_error = metrics_data.get("median_percentage_error", 10)
+                        # 根据中位误差估算一个误差<10%的比例
+                        if median_pct_error < 5:
+                            error_under_10_percent = 0.8  # 80%
+                        elif median_pct_error < 10:
+                            error_under_10_percent = 0.5  # 50%
+                        else:
+                            error_under_10_percent = 0.3  # 30%
+                
+                # 创建模型信息对象
+                model_info = {
+                    "name": model_name,
+                    "path": f"../model/{model_name}_model.joblib",
+                    "type": model_name.split("_")[0] if "_" in model_name else model_name,
+                    "metrics": {
+                        "rmse": metrics_data.get("rmse", 0),
+                        "mae": metrics_data.get("mae", 0),
+                        "median_percentage_error": metrics_data.get("median_percentage_error", 0),
+                        "error_under_10_percent": round(error_under_10_percent * 100, 3)  # 转为百分比，保留3位小数
+                    },
+                    "created_at": os.path.getmtime(metrics_file),
+                    "status": "active" if is_active else "available"
+                }
+                
+                models.append(model_info)
+            except Exception as e:
+                print(f"处理metrics文件时出错 {metrics_file}: {str(e)}")
+        
+        # 按中位误差从小到大排序
+        models = sorted(models, key=lambda x: x["metrics"]["median_percentage_error"], reverse=False)
         
         return ModelListResponse(models=models)
     except Exception as e:
@@ -1580,7 +1772,7 @@ async def delete_model(model_path: str):
 @app.post("/api/models/{model_path:path}/activate")
 async def activate_model(model_path: str):
     """激活指定的模型文件"""
-    global MODEL
+    global MODEL, FEATURE_COLS
     
     try:
         # 使用绝对路径
@@ -1605,6 +1797,31 @@ async def activate_model(model_path: str):
             # 从模型中获取特征列
             if hasattr(MODEL, 'feature_names') and MODEL.feature_names is not None:
                 FEATURE_COLS = MODEL.feature_names
+        
+        # 在激活后，同步模型指标到前端公共目录
+        model_name = os.path.basename(full_path).split(".")[0]
+        
+        # 模型指标文件
+        metrics_path = os.path.join(base_dir, "model", f"{model_name}_metrics.json")
+        frontend_metrics_path = os.path.join(base_dir, "frontend", "public", "data", "model_metrics.json")
+        
+        # 如果存在模型特定的指标文件，将其复制到前端公共目录
+        if os.path.exists(metrics_path):
+            try:
+                # 读取模型特定的指标文件
+                with open(metrics_path, 'r') as f:
+                    model_metrics = json.load(f)
+                
+                # 保存到前端公共目录
+                os.makedirs(os.path.dirname(frontend_metrics_path), exist_ok=True)
+                with open(frontend_metrics_path, 'w') as f:
+                    json.dump(model_metrics, f, indent=2)
+                    
+                print(f"已将模型 {model_name} 的指标文件复制到前端公共目录")
+            except Exception as e:
+                print(f"同步模型指标文件时出错: {str(e)}")
+        else:
+            print(f"未找到模型 {model_name} 的指标文件: {metrics_path}")
         
         return {"success": True, "message": f"模型 {model_path} 已激活"}
     except Exception as e:
@@ -1765,6 +1982,78 @@ async def fix_model():
     
     return result
 
+@app.get("/api/models/{model_name}/metrics")
+async def get_model_metrics(model_name: str):
+    """获取指定模型的metrics.json文件内容"""
+    try:
+        # 使用绝对路径
+        base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+        metrics_path = os.path.join(base_dir, "model", f"{model_name}_metrics.json")
+        
+        print(f"尝试读取模型指标文件: {metrics_path}")
+        
+        if not os.path.exists(metrics_path):
+            print(f"找不到模型指标文件: {metrics_path}")
+            raise HTTPException(status_code=404, detail=f"找不到模型 {model_name} 的指标文件")
+        
+        # 读取metrics.json文件
+        with open(metrics_path, 'r', encoding='utf-8') as f:
+            metrics_data = json.load(f)
+        
+        print(f"成功读取模型指标数据，数据键: {list(metrics_data.keys())}")
+        
+        # 兼容性处理：确保数据结构一致
+        # 1. 如果数据嵌套在metrics内部，提取到顶层
+        if "metrics" in metrics_data and isinstance(metrics_data["metrics"], dict):
+            print("检测到嵌套metrics结构，正在调整...")
+            metrics_content = metrics_data["metrics"]
+            # 保留非metrics字段
+            for key, value in metrics_data.items():
+                if key != "metrics":
+                    metrics_content[key] = value
+            metrics_data = metrics_content
+        
+        # 2. 确保error_under_10_percent以百分比形式存在
+        if "error_under_10_percent" in metrics_data:
+            value = metrics_data["error_under_10_percent"]
+            # 如果值小于1，说明可能是比例而非百分比
+            if isinstance(value, (int, float)) and value < 1:
+                print(f"转换error_under_10_percent从比例({value})到百分比({value*100})")
+                metrics_data["error_under_10_percent"] = value * 100
+        
+        # 3. 对feature_importance进行特殊处理
+        if "feature_importance" in metrics_data and isinstance(metrics_data["feature_importance"], list):
+            # 确保每个feature都有正确的结构
+            for i, item in enumerate(metrics_data["feature_importance"]):
+                if isinstance(item, dict) and "feature" not in item and "name" in item:
+                    # 兼容"name"作为"feature"的情况
+                    item["feature"] = item["name"]
+                    metrics_data["feature_importance"][i] = item
+        
+        # 4. 处理特殊浮点值（NaN, Infinity, -Infinity）
+        def clean_float_values(obj):
+            if isinstance(obj, float):
+                # 检查是否为NaN或Infinity
+                if math.isnan(obj) or math.isinf(obj):
+                    return None
+                return obj
+            elif isinstance(obj, dict):
+                return {k: clean_float_values(v) for k, v in obj.items()}
+            elif isinstance(obj, list):
+                return [clean_float_values(item) for item in obj]
+            return obj
+        
+        # 清理所有特殊浮点值
+        metrics_data = clean_float_values(metrics_data)
+        
+        print(f"处理后的指标数据键: {list(metrics_data.keys())}")
+        print(f"处理后的指标数据示例: {json.dumps(metrics_data, cls=NumpyEncoder, ensure_ascii=False)[:500]}...")
+        
+        return metrics_data
+    except Exception as e:
+        print(f"获取模型指标失败: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"获取模型指标失败: {str(e)}")
+
 # Vercel部署支持
 from mangum import Mangum
 handler = Mangum(app)
@@ -1773,5 +2062,3 @@ if __name__ == "__main__":
     import uvicorn
     port = int(os.environ.get("PORT", 8102))
     uvicorn.run("main:app", host="127.0.0.1", port=port, reload=False)  # 设置reload=False
-##
-#python main.pyM

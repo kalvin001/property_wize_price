@@ -18,7 +18,8 @@ import {
   List,
   Avatar,
   Pagination,
-  notification
+  notification,
+  Select
 } from 'antd';
 import { 
   BarChartOutlined, 
@@ -48,6 +49,9 @@ export default function PropertyReports() {
   const [totalCount, setTotalCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(9);
+  const [modelList, setModelList] = useState([]);
+  const [selectedModel, setSelectedModel] = useState('');
+  const [modelLoading, setModelLoading] = useState(false);
 
   // 处理URL参数
   useEffect(() => {
@@ -61,7 +65,30 @@ export default function PropertyReports() {
   useEffect(() => {
     // 首次加载时使用URL参数
     fetchProperties(1, pageSize, search || null);
+    // 获取可用的模型列表
+    fetchModelList();
   }, []);
+
+  // 获取可用的模型列表
+  const fetchModelList = async () => {
+    setModelLoading(true);
+    try {
+      const response = await fetch('/api/models');
+      if (!response.ok) {
+        throw new Error(`请求失败: ${response.status}`);
+      }
+      const data = await response.json();
+      setModelList(data.models || []);
+    } catch (err) {
+      console.error('获取模型列表失败:', err);
+      notification.error({
+        message: '模型列表加载失败',
+        description: err.message || '获取模型列表出错'
+      });
+    } finally {
+      setModelLoading(false);
+    }
+  };
 
   // 当URL参数变化时重新获取数据
   useEffect(() => {
@@ -80,6 +107,9 @@ export default function PropertyReports() {
       let url = `/api/properties?page=${page}&page_size=${size}`;
       if (query) {
         url += `&query=${encodeURIComponent(query)}`;
+      }
+      if (selectedModel) {
+        url += `&model=${encodeURIComponent(selectedModel)}`;
       }
       
       const response = await fetch(url);
@@ -160,19 +190,25 @@ export default function PropertyReports() {
 
   // 搜索房产
   const searchProperties = (value) => {
-    setSearchValue(value);
-    setCurrentPage(1); // 重置到第一页
+    // 用新的搜索值更新URL，不跳转页面
+    const url = new URL(window.location);
+    if (value) {
+      url.searchParams.set('search', value);
+    } else {
+      url.searchParams.delete('search');
+    }
     
-    // 更新URL参数
-    const query = {};
-    if (value) query.search = value;
+    // 更新URL，但不刷新页面
+    window.history.pushState({}, '', url);
     
-    router.push({
-      pathname: '/property-reports',
-      query
-    }, undefined, { shallow: true });
-    
-    fetchProperties(1, pageSize, value || null);
+    // 重新获取属性列表
+    fetchProperties(1, pageSize, value);
+  };
+
+  // 处理模型选择变化
+  const handleModelChange = (value) => {
+    setSelectedModel(value);
+    fetchProperties(currentPage, pageSize, searchValue);
   };
   
   // 处理分页变化
@@ -215,6 +251,23 @@ export default function PropertyReports() {
                 <div style={{ display: 'flex', alignItems: 'center', height: '100%' }}>
                   <Text type="secondary">共找到 {totalCount} 条记录</Text>
                 </div>
+              </Col>
+              <Col xs={24} sm={12} md={8} lg={6}>
+                <Select
+                  placeholder="选择预测模型"
+                  style={{ width: '100%' }}
+                  onChange={handleModelChange}
+                  value={selectedModel}
+                  loading={modelLoading}
+                  allowClear
+                >
+                  <Select.Option value="">默认模型</Select.Option>
+                  {modelList.map(model => (
+                    <Select.Option key={model.name} value={model.name}>
+                      {model.name} ({model.type})
+                    </Select.Option>
+                  ))}
+                </Select>
               </Col>
             </Row>
           </div>

@@ -8,7 +8,17 @@ import json
 
 from models.model_interface import ModelInterface
 from models.xgboost_model import XGBoostModel
-from models.linear_model import LinearModel
+from models.linear_model import LinearModel 
+from models.knn_model import KNNModel
+from models.geographic_knn_model import GeographicKNNModel
+from models.weighted_knn_model import WeightedKNNModel
+from models.property_similarity_knn_model import PropertySimilarityKNNModel
+from models.property_similarity_model import PropertySimilarityModel
+from models.lightgbm_model import LightGBMModel
+from models.catboost_model import CatBoostModel
+from models.randomforest_model import RandomForestModel
+from models.torch_nn_model import TorchNNModel
+from models.torch_advanced_nn_model import TorchAdvancedNNModel
 
 class ModelFactory:
     """
@@ -21,7 +31,17 @@ class ModelFactory:
         "linear": LinearModel,
         "ridge": lambda **kwargs: LinearModel(model_type="ridge", **kwargs),
         "lasso": lambda **kwargs: LinearModel(model_type="lasso", **kwargs),
-        "elasticnet": lambda **kwargs: LinearModel(model_type="elasticnet", **kwargs)
+        "knn": KNNModel,
+        "geographic_knn": GeographicKNNModel,
+        "weighted_knn": WeightedKNNModel,
+        "property_similarity_knn": PropertySimilarityKNNModel,
+        "property_similarity": PropertySimilarityModel,
+        "lightgbm": LightGBMModel,
+        "catboost": CatBoostModel,
+        "randomforest": RandomForestModel,
+        "torch_nn": TorchNNModel,
+        "torch_advanced_nn": TorchAdvancedNNModel
+        # "elasticnet": lambda **kwargs: LinearModel(model_type="elasticnet", **kwargs)
     }
     
     @classmethod
@@ -30,7 +50,7 @@ class ModelFactory:
         创建指定类型的模型
         
         Args:
-            model_type: 模型类型，支持'xgboost', 'linear', 'ridge', 'lasso', 'elasticnet'
+            model_type: 模型类型，支持'xgboost', 'linear', 'ridge', 'lasso', 'elasticnet', 'knn', 'torch_nn', 'torch_advanced_nn'等
             **kwargs: 模型参数
             
         Returns:
@@ -46,7 +66,7 @@ class ModelFactory:
     @classmethod
     def load_model(cls, path: str) -> ModelInterface:
         """
-        从文件中加载模型
+        加载指定路径的模型
         
         Args:
             path: 模型文件路径
@@ -54,55 +74,136 @@ class ModelFactory:
         Returns:
             加载的模型实例
         """
-        if not os.path.exists(path):
-            raise FileNotFoundError(f"模型文件不存在: {path}")
-        
-        # 加载模型数据
-        model_data = joblib.load(path)
-        
-        if isinstance(model_data, dict) and "metadata" in model_data:
-            # 新格式：包含模型和元数据的字典
-            metadata = model_data["metadata"]
-            model_type = metadata.get("model_type", "").lower()
+        try:
+            # 首先尝试确定模型类型
+            model_type = "xgboost"  # 默认类型
             
-            # 从model_type中提取基本类型
-            if model_type.startswith("linear-"):
-                base_type = "linear"
-                sub_type = model_type.split("-")[1]
-                # 创建对应类型的模型
-                if sub_type in ["ridge", "lasso", "elasticnet"]:
-                    model = LinearModel(model_type=sub_type)
+            # 尝试从文件名推断模型类型
+            file_name = os.path.basename(path)
+            if "linear" in file_name:
+                model_type = "linear"
+            elif "ridge" in file_name:
+                model_type = "ridge"
+            elif "lasso" in file_name:
+                model_type = "lasso"
+            elif "elastic" in file_name:
+                model_type = "elasticnet"
+            elif "geographic_knn" in file_name:
+                model_type = "geographic_knn"
+            elif "weighted_knn" in file_name:
+                model_type = "weighted_knn"
+            elif "property_similarity_knn" in file_name:
+                model_type = "property_similarity_knn"
+            elif "property_similarity" in file_name:
+                model_type = "property_similarity"
+            elif "knn" in file_name:
+                model_type = "knn"
+            
+            # 尝试从元数据文件获取更准确的模型类型
+            meta_file = os.path.splitext(path)[0] + "_meta.json"
+            if os.path.exists(meta_file):
+                try:
+                    with open(meta_file, 'r') as f:
+                        metadata = json.load(f)
+                    
+                    if "model_type" in metadata:
+                        meta_type = metadata["model_type"].lower()
+                        if "linear" in meta_type:
+                            if "ridge" in meta_type:
+                                model_type = "ridge"
+                            elif "lasso" in meta_type:
+                                model_type = "lasso"
+                            elif "elasticnet" in meta_type:
+                                model_type = "elasticnet"
+                            else:
+                                model_type = "linear"
+                        elif "xgboost" in meta_type:
+                            model_type = "xgboost"
+                        elif "geographicknn" in meta_type:
+                            model_type = "geographic_knn"
+                        elif "weightedknn" in meta_type:
+                            model_type = "weighted_knn"
+                        elif "propertysimilarityknn" in meta_type:
+                            model_type = "property_similarity_knn"
+                        elif "propertysimilarity" in meta_type:
+                            model_type = "property_similarity"
+                        elif "knn" in meta_type:
+                            model_type = "knn"
+                except Exception as e:
+                    print(f"读取元数据文件失败: {e}")
+            
+            # 加载模型
+            # 尝试使用合适的模型类来加载
+            model_class = cls.MODEL_TYPES.get(model_type)
+            if model_class:
+                try:
+                    model = model_class.load(path)
+                    # 确保model_path被正确设置
+                    model.model_path = path
+                    return model
+                except Exception as e:
+                    print(f"使用{model_type}模型类加载失败: {e}")
+            
+            # 如果使用特定模型类加载失败，尝试通用方法
+            data = joblib.load(path)
+            
+            # 处理不同的数据格式
+            if isinstance(data, dict) and "model" in data:
+                # 创建合适的模型
+                model_obj = data["model"]
+                model_type_str = str(type(model_obj)).lower()
+                
+                if "xgboost" in model_type_str:
+                    model = cls.MODEL_TYPES["xgboost"]()
+                elif hasattr(model_obj, "coef_"):  # 线性模型
+                    if hasattr(model_obj, "alpha") and hasattr(model_obj, "l1_ratio"):
+                        model = cls.MODEL_TYPES["elasticnet"]()
+                    elif hasattr(model_obj, "alpha") and not hasattr(model_obj, "l1_ratio"):
+                        if hasattr(model_obj, "fit_intercept") and model_obj.fit_intercept:
+                            model = cls.MODEL_TYPES["ridge"]()
+                        else:
+                            model = cls.MODEL_TYPES["lasso"]()
+                    else:
+                        model = cls.MODEL_TYPES["linear"]()
+                elif "knn" in model_type_str or "neighbor" in model_type_str:
+                    # 尝试判断具体的KNN模型类型
+                    metadata = data.get("metadata", {})
+                    model_type_meta = metadata.get("model_type", "").lower()
+                    
+                    if "geographic" in model_type_meta:
+                        model = cls.MODEL_TYPES["geographic_knn"]()
+                    elif "weighted" in model_type_meta:
+                        model = cls.MODEL_TYPES["weighted_knn"]()
+                    elif "propertysimilarityknn" in model_type_meta:
+                        model = cls.MODEL_TYPES["property_similarity_knn"]()
+                    elif "propertysimilarity" in model_type_meta:
+                        model = cls.MODEL_TYPES["property_similarity"]()
+                    else:
+                        model = cls.MODEL_TYPES["knn"]()
                 else:
-                    model = LinearModel()
-            elif model_type.lower() == "xgboost":
-                model = XGBoostModel()
-            else:
-                # 尝试使用默认的XGBoost模型
-                print(f"未知的模型类型: {model_type}，尝试使用XGBoost模型加载")
-                model = XGBoostModel()
-            
-            # 设置模型属性
-            model.model = model_data["model"]
-            model.metadata = metadata
-            model.feature_names = model_data.get("feature_names")
-            
-            return model
-        else:
-            # 旧格式：直接是模型对象
-            print("警告: 使用旧格式加载模型，无法恢复完整元数据")
-            # 尝试判断模型类型
-            if hasattr(model_data, 'feature_importances_'):
-                # 可能是XGBoost模型
-                model = XGBoostModel()
-                model.model = model_data
-                return model
-            elif hasattr(model_data, 'coef_'):
-                # 可能是线性模型
-                model = LinearModel()
-                model.model = model_data
+                    # 默认使用XGBoost
+                    model = cls.MODEL_TYPES["xgboost"]()
+                
+                # 设置模型属性
+                model.model = data["model"]
+                if "metadata" in data:
+                    model._metadata = data["metadata"]
+                if "feature_names" in data:
+                    model._feature_names = data["feature_names"]
+                
+                # 确保model_path被正确设置
+                model.model_path = path
+                
                 return model
             else:
-                raise ValueError("无法确定模型类型")
+                # 简单加载 - 兼容旧版本
+                model = cls.MODEL_TYPES["xgboost"]()
+                model.model = data
+                model.model_path = path
+                return model
+                
+        except Exception as e:
+            raise ValueError(f"加载模型失败: {str(e)}")
     
     @classmethod
     def list_models(cls, model_dir: str = "model") -> List[Dict[str, Any]]:
@@ -156,3 +257,7 @@ class ModelFactory:
                 print(f"加载模型 {model_file} 失败: {e}")
         
         return model_info 
+    
+
+if __name__ == "__main__":
+    print(ModelFactory.list_models())

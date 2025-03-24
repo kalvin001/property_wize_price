@@ -63,3 +63,10 @@ Thumbs.db
 temp_backup/
 *.bak
 *.tmp 
+*.csv
+*.pkl
+*.joblib
+*.json
+*.h5
+*.bin
+*.json
