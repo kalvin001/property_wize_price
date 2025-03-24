@@ -1,0 +1,98 @@
+{
+  "rmse": 524554.9459723332,
+  "mae": 246000.2896871521,
+  "r2": 0.9002737240459413,
+  "mean_percentage_error": 12.96503143000691,
+  "median_percentage_error": 7.831833333333334,
+  "error_distribution": {
+    "error_ranges": {
+      "<5%": 0.33599633291860387,
+      "5-10%": 0.26828629428328205,
+      "10-15%": 0.17248379280990112,
+      "15-20%": 0.09671927182240848,
+      ">20%": 0.12651430816580447
+    }
+  },
+  "feature_importance": [
+    {
+      "feature": "land_value",
+      "importance": 0.15255990624427795
+    },
+    {
+      "feature": "sec_med_July20",
+      "importance": 0.06657595932483673
+    },
+    {
+      "feature": "luxury_level_desc_score",
+      "importance": 0.06510423868894577
+    },
+    {
+      "feature": "sector_median",
+      "importance": 0.0576627291738987
+    },
+    {
+      "feature": "land_value_2022",
+      "importance": 0.05643476918339729
+    },
+    {
+      "feature": "construction_year_guess",
+      "importance": 0.05383637174963951
+    },
+    {
+      "feature": "prop_x",
+      "importance": 0.0513286329805851
+    },
+    {
+      "feature": "locality_post",
+      "importance": 0.048435915261507034
+    },
+    {
+      "feature": "sold_contract_date",
+      "importance": 0.03212504833936691
+    },
+    {
+      "feature": "biggest_living_space_area",
+      "importance": 0.030658433213829994
+    },
+    {
+      "feature": "sec_med_July22",
+      "importance": 0.026702841743826866
+    },
+    {
+      "feature": "land_size_type",
+      "importance": 0.026311973109841347
+    },
+    {
+      "feature": "luxury_index",
+      "importance": 0.019777733832597733
+    },
+    {
+      "feature": "has_pool",
+      "importance": 0.01916806399822235
+    },
+    {
+      "feature": "total_rooms",
+      "importance": 0.017509017139673233
+    },
+    {
+      "feature": "bath_bed_ratio",
+      "importance": 0.017069704830646515
+    },
+    {
+      "feature": "famous_designer",
+      "importance": 0.013676289469003677
+    },
+    {
+      "feature": "land_size",
+      "importance": 0.012023275718092918
+    },
+    {
+      "feature": "sector_code",
+      "importance": 0.011690393090248108
+    },
+    {
+      "feature": "internal_area",
+      "importance": 0.011431093327701092
+    }
+  ]
+}

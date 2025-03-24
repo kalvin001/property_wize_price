@@ -1,0 +1,98 @@
+{
+    "rmse": 263012.72373857745,
+    "mae": 73055.73226340981,
+    "r2": 0.9749284521675385,
+    "mean_percentage_error": 3.727046547485412,
+    "median_percentage_error": 2.119016913319239,
+    "error_distribution": {
+        "error_ranges": {
+            "<5%": 0.8493222447776831,
+            "5-10%": 0.1212101368607164,
+            "10-15%": 0.014995743566236657,
+            "15-20%": 0.005631589286883636,
+            ">20%": 0.008840285508480126
+        }
+    },
+    "feature_importance": [
+        {
+            "feature": "land_value",
+            "importance": 0.09252185374498367
+        },
+        {
+            "feature": "bath_bed_ratio",
+            "importance": 0.07487432658672333
+        },
+        {
+            "feature": "land_value_2022",
+            "importance": 0.0742141380906105
+        },
+        {
+            "feature": "locality_post",
+            "importance": 0.05887608975172043
+        },
+        {
+            "feature": "sec_med_July20",
+            "importance": 0.053623002022504807
+        },
+        {
+            "feature": "luxury_level_desc_score",
+            "importance": 0.053450584411621094
+        },
+        {
+            "feature": "prop_bath",
+            "importance": 0.051448170095682144
+        },
+        {
+            "feature": "prop_bed",
+            "importance": 0.041479673236608505
+        },
+        {
+            "feature": "land_value_ratio",
+            "importance": 0.03976239264011383
+        },
+        {
+            "feature": "sec_med_July19",
+            "importance": 0.03794914856553078
+        },
+        {
+            "feature": "land_size_type_M",
+            "importance": 0.03396667167544365
+        },
+        {
+            "feature": "price_per_land_sqm",
+            "importance": 0.032436057925224304
+        },
+        {
+            "feature": "prop_carpark",
+            "importance": 0.024738861247897148
+        },
+        {
+            "feature": "sector_median",
+            "importance": 0.023516234010457993
+        },
+        {
+            "feature": "prop_y",
+            "importance": 0.02119228057563305
+        },
+        {
+            "feature": "land_size",
+            "importance": 0.017930995672941208
+        },
+        {
+            "feature": "sold_contract_date_encoded",
+            "importance": 0.014765258878469467
+        },
+        {
+            "feature": "sector_code",
+            "importance": 0.014209989458322525
+        },
+        {
+            "feature": "total_rooms",
+            "importance": 0.014199560508131981
+        },
+        {
+            "feature": "price_per_sqm",
+            "importance": 0.013905047439038754
+        }
+    ]
+}

@@ -1,0 +1,989 @@
+{
+  "features_count": 225,
+  "rmse": 469744.47768499417,
+  "mae": 204291.91259359775,
+  "r2_score": 0.9212083614506678,
+  "mse": 220659874315.54797,
+  "median_ae": 101141.0,
+  "explained_variance": 0.9212086556324367,
+  "cv_rmse": 469744.47768499417,
+  "predictions": [
+    2026318.5,
+    689879.9375,
+    1859233.75,
+    1829204.375,
+    3093830.75,
+    2226242.5,
+    1019379.1875,
+    2490504.75,
+    1244466.625,
+    1453718.5
+  ],
+  "median_percentage_error": 6.36929234751359,
+  "mean_percentage_error": 9.607155187891877,
+  "error_distribution": {
+    "percentiles": {
+      "p10": 1.2285196526592983,
+      "p25": 2.9576835351610526,
+      "p50": 6.36929234751359,
+      "p75": 11.65601641245723,
+      "p90": 18.324192569413857
+    },
+    "error_ranges": {
+      "<5%": 0.40735167669819433,
+      "5-10%": 0.2814560045858412,
+      "10-15%": 0.15620521639438234,
+      "15-20%": 0.07473488105474348,
+      ">20%": 0.08025222126683863
+    }
+  },
+  "feature_importance": [
+    {
+      "feature": "land_value_building_age_years_interaction",
+      "importance": 148145199644672.0
+    },
+    {
+      "feature": "land_value_internal_area_interaction",
+      "importance": 61615332392960.0
+    },
+    {
+      "feature": "land_value",
+      "importance": 33405708271616.0
+    },
+    {
+      "feature": "land_value_prop_bed_interaction",
+      "importance": 20654648721408.0
+    },
+    {
+      "feature": "geo_knn_5_price_historical",
+      "importance": 8516437278720.0
+    },
+    {
+      "feature": "famous_designer",
+      "importance": 6760773451776.0
+    },
+    {
+      "feature": "tennis_court_cnt",
+      "importance": 5919075729408.0
+    },
+    {
+      "feature": "indoor_swimming_pool_cnt",
+      "importance": 5554852855808.0
+    },
+    {
+      "feature": "prop_bath",
+      "importance": 5501327769600.0
+    },
+    {
+      "feature": "land_value_bracket",
+      "importance": 5370818854912.0
+    },
+    {
+      "feature": "luxury_level_score",
+      "importance": 3667877167104.0
+    },
+    {
+      "feature": "view_quality",
+      "importance": 3606202810368.0
+    },
+    {
+      "feature": "lift_cnt",
+      "importance": 3139513614336.0
+    },
+    {
+      "feature": "locality_land_mean",
+      "importance": 2800617783296.0
+    },
+    {
+      "feature": "bed_bath_car_score",
+      "importance": 2594482421760.0
+    },
+    {
+      "feature": "sector_median",
+      "importance": 2580775960576.0
+    },
+    {
+      "feature": "indoor_spa_cnt",
+      "importance": 2399399575552.0
+    },
+    {
+      "feature": "total_rooms",
+      "importance": 2309375131648.0
+    },
+    {
+      "feature": "sin_longitude",
+      "importance": 2307555590144.0
+    },
+    {
+      "feature": "has_wharf",
+      "importance": 2259490963456.0
+    },
+    {
+      "feature": "postcode_median_price_hist",
+      "importance": 2238415110144.0
+    },
+    {
+      "feature": "gym_area",
+      "importance": 2136607424512.0
+    },
+    {
+      "feature": "bed_bath_product",
+      "importance": 2087138623488.0
+    },
+    {
+      "feature": "famous_builder",
+      "importance": 1977794560000.0
+    },
+    {
+      "feature": "luxury_composite",
+      "importance": 1815804116992.0
+    },
+    {
+      "feature": "luxury_level_desc_score",
+      "importance": 1807640559616.0
+    },
+    {
+      "feature": "locality_land_median",
+      "importance": 1804082610176.0
+    },
+    {
+      "feature": "postcode_mean_price_hist",
+      "importance": 1712108470272.0
+    },
+    {
+      "feature": "log_distance_from_center",
+      "importance": 1522533793792.0
+    },
+    {
+      "feature": "entertaining_space_cnt",
+      "importance": 1493679341568.0
+    },
+    {
+      "feature": "quality_score_squared",
+      "importance": 1477105025024.0
+    },
+    {
+      "feature": "famous_owner",
+      "importance": 1469322887168.0
+    },
+    {
+      "feature": "postcode_std_price_hist",
+      "importance": 1455171829760.0
+    },
+    {
+      "feature": "bed_bath_car_score_squared",
+      "importance": 1452775571456.0
+    },
+    {
+      "feature": "outdoor_spa_cnt",
+      "importance": 1408467992576.0
+    },
+    {
+      "feature": "property_composite_index",
+      "importance": 1398911664128.0
+    },
+    {
+      "feature": "prop_x",
+      "importance": 1395747848192.0
+    },
+    {
+      "feature": "attic_level_bedroom_cnt",
+      "importance": 1387518754816.0
+    },
+    {
+      "feature": "bed_bath_ratio",
+      "importance": 1376197935104.0
+    },
+    {
+      "feature": "distance_from_center",
+      "importance": 1359306555392.0
+    },
+    {
+      "feature": "region",
+      "importance": 1331646169088.0
+    },
+    {
+      "feature": "distance_to_cluster_3",
+      "importance": 1326947762176.0
+    },
+    {
+      "feature": "age_level_interaction",
+      "importance": 1280361758720.0
+    },
+    {
+      "feature": "locality_post",
+      "importance": 1279793561600.0
+    },
+    {
+      "feature": "land_to_locality_max_ratio",
+      "importance": 1225444556800.0
+    },
+    {
+      "feature": "construction_year_guess",
+      "importance": 1213474275328.0
+    },
+    {
+      "feature": "property_composite_index_squared",
+      "importance": 1188430872576.0
+    },
+    {
+      "feature": "land_size_type",
+      "importance": 1158706233344.0
+    },
+    {
+      "feature": "building_age_squared",
+      "importance": 1117480943616.0
+    },
+    {
+      "feature": "time_trend_squared",
+      "importance": 1116484665344.0
+    },
+    {
+      "feature": "locality_land_min",
+      "importance": 1070195605504.0
+    },
+    {
+      "feature": "bedroom_ratio",
+      "importance": 1044651704320.0
+    },
+    {
+      "feature": "quality_score",
+      "importance": 1006038810624.0
+    },
+    {
+      "feature": "luxury_level",
+      "importance": 929018085376.0
+    },
+    {
+      "feature": "unreliable_features",
+      "importance": 836819746816.0
+    },
+    {
+      "feature": "locality_land_max",
+      "importance": 835713564672.0
+    },
+    {
+      "feature": "bedroom_cnt",
+      "importance": 833187610624.0
+    },
+    {
+      "feature": "land_value_locality_deviation",
+      "importance": 823495294976.0
+    },
+    {
+      "feature": "quality_score_cubed",
+      "importance": 785115316224.0
+    },
+    {
+      "feature": "luxury_facilities_squared",
+      "importance": 784308633600.0
+    },
+    {
+      "feature": "entertainment_space_ratio",
+      "importance": 768675282944.0
+    },
+    {
+      "feature": "balcony_area",
+      "importance": 765620912128.0
+    },
+    {
+      "feature": "days_since_reference",
+      "importance": 731563884544.0
+    },
+    {
+      "feature": "luxury_facilities",
+      "importance": 721921835008.0
+    },
+    {
+      "feature": "building_age_years",
+      "importance": 720565436416.0
+    },
+    {
+      "feature": "sector_code",
+      "importance": 704677347328.0
+    },
+    {
+      "feature": "ensuite_cnt",
+      "importance": 704010321920.0
+    },
+    {
+      "feature": "building_coverage_ratio",
+      "importance": 697123078144.0
+    },
+    {
+      "feature": "granny_flat_bedroom_cnt",
+      "importance": 688853024768.0
+    },
+    {
+      "feature": "bath_cnt",
+      "importance": 684172509184.0
+    },
+    {
+      "feature": "wir_cnt",
+      "importance": 656185819136.0
+    },
+    {
+      "feature": "rooms_squared",
+      "importance": 651533484032.0
+    },
+    {
+      "feature": "gym_name",
+      "importance": 649877913600.0
+    },
+    {
+      "feature": "biggest_entertainment_name",
+      "importance": 647666139136.0
+    },
+    {
+      "feature": "bedroom_without_bathroom_names",
+      "importance": 634788970496.0
+    },
+    {
+      "feature": "land_utilization_ratio",
+      "importance": 627537346560.0
+    },
+    {
+      "feature": "land_size",
+      "importance": 607413141504.0
+    },
+    {
+      "feature": "property_type_code",
+      "importance": 589612580864.0
+    },
+    {
+      "feature": "basement_area",
+      "importance": 580847534080.0
+    },
+    {
+      "feature": "no_public_space_floor_names",
+      "importance": 574887755776.0
+    },
+    {
+      "feature": "main_building_bedroom_avg_area",
+      "importance": 570298925056.0
+    },
+    {
+      "feature": "log_land_size",
+      "importance": 568531943424.0
+    },
+    {
+      "feature": "internal_area_prop_bed_interaction",
+      "importance": 568369086464.0
+    },
+    {
+      "feature": "building_year_mix",
+      "importance": 561832722432.0
+    },
+    {
+      "feature": "prop_bed_building_age_years_interaction",
+      "importance": 558689222656.0
+    },
+    {
+      "feature": "time_trend",
+      "importance": 551887962112.0
+    },
+    {
+      "feature": "sold_contract_date",
+      "importance": 547258368000.0
+    },
+    {
+      "feature": "building_age",
+      "importance": 532050968576.0
+    },
+    {
+      "feature": "log_building_coverage_ratio",
+      "importance": 531831521280.0
+    },
+    {
+      "feature": "development_opportunity",
+      "importance": 514392588288.0
+    },
+    {
+      "feature": "prop_zoning",
+      "importance": 496690331648.0
+    },
+    {
+      "feature": "garage_area",
+      "importance": 494345355264.0
+    },
+    {
+      "feature": "distance_to_cluster_2",
+      "importance": 493419495424.0
+    },
+    {
+      "feature": "season",
+      "importance": 470566109184.0
+    },
+    {
+      "feature": "ground_level_bedroom_cnt",
+      "importance": 466335105024.0
+    },
+    {
+      "feature": "biggest_entertainment_area",
+      "importance": 459780653056.0
+    },
+    {
+      "feature": "distance_to_cluster_8",
+      "importance": 443850719232.0
+    },
+    {
+      "feature": "outdoor_swimming_pool_cnt",
+      "importance": 441517572096.0
+    },
+    {
+      "feature": "lower_ground_bedroom_cnt",
+      "importance": 434039160832.0
+    },
+    {
+      "feature": "cos_longitude",
+      "importance": 431848882176.0
+    },
+    {
+      "feature": "no_public_space_floor_cnt",
+      "importance": 419699720192.0
+    },
+    {
+      "feature": "da_cdc_approval",
+      "importance": 416742375424.0
+    },
+    {
+      "feature": "space_per_bedroom",
+      "importance": 415311855616.0
+    },
+    {
+      "feature": "cabana_cnt",
+      "importance": 410059112448.0
+    },
+    {
+      "feature": "land_utilization_ratio_squared",
+      "importance": 401679056896.0
+    },
+    {
+      "feature": "outdoor_dining_area",
+      "importance": 401515347968.0
+    },
+    {
+      "feature": "area_per_level",
+      "importance": 399645900800.0
+    },
+    {
+      "feature": "function_room_area",
+      "importance": 398528937984.0
+    },
+    {
+      "feature": "land_to_locality_mean_ratio",
+      "importance": 394200973312.0
+    },
+    {
+      "feature": "bedroom_without_bathroom_cnt",
+      "importance": 386619539456.0
+    },
+    {
+      "feature": "age_area_interaction",
+      "importance": 383201116160.0
+    },
+    {
+      "feature": "log_space_per_bedroom",
+      "importance": 378713735168.0
+    },
+    {
+      "feature": "kitchen_cnt",
+      "importance": 368422223872.0
+    },
+    {
+      "feature": "locality_land_std",
+      "importance": 343830429696.0
+    },
+    {
+      "feature": "study_home_office_cnt",
+      "importance": 339262832640.0
+    },
+    {
+      "feature": "levels_cnt",
+      "importance": 334424342528.0
+    },
+    {
+      "feature": "log_avg_room_area",
+      "importance": 325703467008.0
+    },
+    {
+      "feature": "living_space_area",
+      "importance": 310530899968.0
+    },
+    {
+      "feature": "internal_area",
+      "importance": 309848834048.0
+    },
+    {
+      "feature": "luxury_facility_density",
+      "importance": 307855228928.0
+    },
+    {
+      "feature": "updated_date",
+      "importance": 305966350336.0
+    },
+    {
+      "feature": "log_internal_area",
+      "importance": 294167248896.0
+    },
+    {
+      "feature": "prop_bed",
+      "importance": 292300521472.0
+    },
+    {
+      "feature": "luxury_level_images_score",
+      "importance": 290224177152.0
+    },
+    {
+      "feature": "sector_value_per_sqm",
+      "importance": 289348190208.0
+    },
+    {
+      "feature": "storage_area",
+      "importance": 280836472832.0
+    },
+    {
+      "feature": "gym_cnt",
+      "importance": 276490158080.0
+    },
+    {
+      "feature": "distance_to_cluster_4",
+      "importance": 273547345920.0
+    },
+    {
+      "feature": "avg_room_area",
+      "importance": 267749949440.0
+    },
+    {
+      "feature": "key_adv_bert_2",
+      "importance": 254743117824.0
+    },
+    {
+      "feature": "functional_spaces",
+      "importance": 254265098240.0
+    },
+    {
+      "feature": "prop_carpark",
+      "importance": 250355269632.0
+    },
+    {
+      "feature": "functional_spaces_squared",
+      "importance": 250215333888.0
+    },
+    {
+      "feature": "internal_workshop_area",
+      "importance": 239989538816.0
+    },
+    {
+      "feature": "living_space_cnt",
+      "importance": 236498927616.0
+    },
+    {
+      "feature": "distance_to_cluster_9",
+      "importance": 232927838208.0
+    },
+    {
+      "feature": "key_adv_bert_3",
+      "importance": 230549258240.0
+    },
+    {
+      "feature": "luxury_level_images",
+      "importance": 227249913856.0
+    },
+    {
+      "feature": "distance_to_cluster_6",
+      "importance": 224731627520.0
+    },
+    {
+      "feature": "key_adv_bert_0",
+      "importance": 221534502912.0
+    },
+    {
+      "feature": "view_type",
+      "importance": 219708047360.0
+    },
+    {
+      "feature": "is_weekend",
+      "importance": 212271611904.0
+    },
+    {
+      "feature": "log_building_age",
+      "importance": 210411503616.0
+    },
+    {
+      "feature": "biggest_bedroom_area",
+      "importance": 208756391936.0
+    },
+    {
+      "feature": "dayofweek_sin",
+      "importance": 207560032256.0
+    },
+    {
+      "feature": "connected_garage_cnt",
+      "importance": 202680287232.0
+    },
+    {
+      "feature": "verandah_area",
+      "importance": 201806102528.0
+    },
+    {
+      "feature": "stca_development_potential",
+      "importance": 200610365440.0
+    },
+    {
+      "feature": "cul_de_sac",
+      "importance": 193102512128.0
+    },
+    {
+      "feature": "bath_plus_area",
+      "importance": 190410309632.0
+    },
+    {
+      "feature": "weather_board",
+      "importance": 189720379392.0
+    },
+    {
+      "feature": "cos_latitude",
+      "importance": 189236019200.0
+    },
+    {
+      "feature": "covered_dining_area",
+      "importance": 188593061888.0
+    },
+    {
+      "feature": "property_angle",
+      "importance": 186411122688.0
+    },
+    {
+      "feature": "current_tenure_aux",
+      "importance": 183403397120.0
+    },
+    {
+      "feature": "season_sin",
+      "importance": 180180434944.0
+    },
+    {
+      "feature": "locality_id",
+      "importance": 179874119680.0
+    },
+    {
+      "feature": "quarter",
+      "importance": 177963040768.0
+    },
+    {
+      "feature": "pantry_cnt",
+      "importance": 177588551680.0
+    },
+    {
+      "feature": "mainbuilding_bedrooms_area",
+      "importance": 173186826240.0
+    },
+    {
+      "feature": "each_bedroom_area",
+      "importance": 171834261504.0
+    },
+    {
+      "feature": "narrow_bedroom_cnt",
+      "importance": 171078598656.0
+    },
+    {
+      "feature": "double_brick_wall",
+      "importance": 170385113088.0
+    },
+    {
+      "feature": "month_sin",
+      "importance": 169760817152.0
+    },
+    {
+      "feature": "internal_area_building_age_years_interaction",
+      "importance": 168391540736.0
+    },
+    {
+      "feature": "key_adv_bert_1",
+      "importance": 167850049536.0
+    },
+    {
+      "feature": "key_adv_bert_6",
+      "importance": 162267856896.0
+    },
+    {
+      "feature": "street_id",
+      "importance": 160632537088.0
+    },
+    {
+      "feature": "high_ceiling",
+      "importance": 160308297728.0
+    },
+    {
+      "feature": "location_summary",
+      "importance": 155974483968.0
+    },
+    {
+      "feature": "balcony_verandah_area",
+      "importance": 154167558144.0
+    },
+    {
+      "feature": "robe_cnt",
+      "importance": 154094354432.0
+    },
+    {
+      "feature": "month",
+      "importance": 151682121728.0
+    },
+    {
+      "feature": "big_sector_code",
+      "importance": 150836035584.0
+    },
+    {
+      "feature": "renovation_expansion",
+      "importance": 147456507904.0
+    },
+    {
+      "feature": "key_adv_bert_9",
+      "importance": 145278976000.0
+    },
+    {
+      "feature": "prop_y",
+      "importance": 144791863296.0
+    },
+    {
+      "feature": "biggest_living_space_area",
+      "importance": 144456564736.0
+    },
+    {
+      "feature": "postcode_count_hist",
+      "importance": 140493209600.0
+    },
+    {
+      "feature": "distance_to_cluster_7",
+      "importance": 140421316608.0
+    },
+    {
+      "feature": "key_adv_bert_5",
+      "importance": 139703615488.0
+    },
+    {
+      "feature": "robe_plus_area",
+      "importance": 138637164544.0
+    },
+    {
+      "feature": "distance_to_cluster_5",
+      "importance": 138045898752.0
+    },
+    {
+      "feature": "day",
+      "importance": 136008679424.0
+    },
+    {
+      "feature": "natural_light",
+      "importance": 135529889792.0
+    },
+    {
+      "feature": "quietness",
+      "importance": 134500950016.0
+    },
+    {
+      "feature": "key_adv_bert_8",
+      "importance": 132497334272.0
+    },
+    {
+      "feature": "kitchen_area",
+      "importance": 131626180608.0
+    },
+    {
+      "feature": "month_cos",
+      "importance": 131595067392.0
+    },
+    {
+      "feature": "facilities_density",
+      "importance": 129525989376.0
+    },
+    {
+      "feature": "distance_to_cluster_1",
+      "importance": 124299755520.0
+    },
+    {
+      "feature": "locality_name",
+      "importance": 124262211584.0
+    },
+    {
+      "feature": "min_cluster_distance",
+      "importance": 123589091328.0
+    },
+    {
+      "feature": "season_cos",
+      "importance": 119855652864.0
+    },
+    {
+      "feature": "sin_latitude",
+      "importance": 116569366528.0
+    },
+    {
+      "feature": "full_address_y",
+      "importance": 115406635008.0
+    },
+    {
+      "feature": "main_functional_area_ratio",
+      "importance": 115293036544.0
+    },
+    {
+      "feature": "dayofweek",
+      "importance": 112217055232.0
+    },
+    {
+      "feature": "corner_property",
+      "importance": 110288093184.0
+    },
+    {
+      "feature": "key_adv_bert_4",
+      "importance": 107642511360.0
+    },
+    {
+      "feature": "key_adv_bert_7",
+      "importance": 107387183104.0
+    },
+    {
+      "feature": "house_name",
+      "importance": 106835050496.0
+    },
+    {
+      "feature": "distance_to_cluster_0",
+      "importance": 106513776640.0
+    },
+    {
+      "feature": "studio_cnt",
+      "importance": 106347331584.0
+    },
+    {
+      "feature": "location_convenience",
+      "importance": 106264920064.0
+    },
+    {
+      "feature": "is_holiday_season",
+      "importance": 105185345536.0
+    },
+    {
+      "feature": "other_area",
+      "importance": 103339016192.0
+    },
+    {
+      "feature": "separate_garage_cnt",
+      "importance": 100760477696.0
+    },
+    {
+      "feature": "small_bedroom_cnt",
+      "importance": 94988410880.0
+    },
+    {
+      "feature": "workshop_cnt",
+      "importance": 93289332736.0
+    },
+    {
+      "feature": "is_month_start",
+      "importance": 92429737984.0
+    },
+    {
+      "feature": "dayofweek_cos",
+      "importance": 89656696832.0
+    },
+    {
+      "feature": "year",
+      "importance": 88221024256.0
+    },
+    {
+      "feature": "geo_cluster",
+      "importance": 81073176576.0
+    },
+    {
+      "feature": "is_year_end",
+      "importance": 79919529984.0
+    },
+    {
+      "feature": "near_park",
+      "importance": 79477727232.0
+    },
+    {
+      "feature": "is_month_end",
+      "importance": 60583157760.0
+    },
+    {
+      "feature": "month_in_quarter",
+      "importance": 59145158656.0
+    },
+    {
+      "feature": "sloped_roof_bedroom_cnt",
+      "importance": 51086704640.0
+    },
+    {
+      "feature": "is_year_start",
+      "importance": 43912491008.0
+    },
+    {
+      "feature": "prop_type",
+      "importance": 19025278976.0
+    }
+  ],
+  "comparison": {
+    "all_features": {
+      "rmse": 469744.47768499417,
+      "mae": 204291.91259359775,
+      "r2_score": 0.9212083614506678
+    },
+    "selected_features": {
+      "rmse": 469744.47768499417,
+      "mae": 204291.91259359775,
+      "r2_score": 0.9212083614506678
+    }
+  },
+  "performance": {
+    "rmse": 469744.47768499417,
+    "mae": 204291.91259359775,
+    "r2": 0.9212083614506678
+  },
+  "parameters": {
+    "objective": "reg:squarederror",
+    "base_score": null,
+    "booster": "gbtree",
+    "callbacks": null,
+    "colsample_bylevel": 0.8,
+    "colsample_bynode": null,
+    "colsample_bytree": 0.8,
+    "device": null,
+    "early_stopping_rounds": null,
+    "enable_categorical": false,
+    "eval_metric": null,
+    "feature_types": null,
+    "gamma": 0.1,
+    "grow_policy": null,
+    "importance_type": null,
+    "interaction_constraints": null,
+    "learning_rate": 0.05,
+    "max_bin": null,
+    "max_cat_threshold": null,
+    "max_cat_to_onehot": null,
+    "max_delta_step": null,
+    "max_depth": 6,
+    "max_leaves": null,
+    "min_child_weight": 3,
+    "missing": NaN,
+    "monotone_constraints": null,
+    "multi_strategy": null,
+    "n_estimators": 10000,
+    "n_jobs": -1,
+    "num_parallel_tree": null,
+    "random_state": 42,
+    "reg_alpha": 0.1,
+    "reg_lambda": 1.0,
+    "sampling_method": null,
+    "scale_pos_weight": null,
+    "subsample": 0.8,
+    "tree_method": "hist",
+    "validate_parameters": null,
+    "verbosity": null
+  },
+  "feature_info": {
+    "total_features": 225,
+    "deep_features_used": false,
+    "deep_features_count": 0
+  }
+}

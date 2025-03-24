@@ -1,0 +1,179 @@
+{
+  "rmse": 513566.6384543986,
+  "mae": 211595.54664436443,
+  "r2_score": 0.9058218025992825,
+  "mse": 263750692133.35095,
+  "median_ae": 103060.875,
+  "explained_variance": 0.905828514335711,
+  "cv_rmse": 513566.6384543986,
+  "predictions": [
+    1926728.625,
+    717839.6875,
+    1859727.0,
+    1775649.125,
+    3029641.0,
+    2152667.0,
+    883538.1875,
+    2484120.25,
+    1189960.0,
+    1437607.875
+  ],
+  "median_percentage_error": 6.594025449953165,
+  "mean_percentage_error": 9.79185008228582,
+  "error_distribution": {
+    "percentiles": {
+      "p10": 1.1435495014245014,
+      "p25": 3.0159102564102565,
+      "p50": 6.594025449953165,
+      "p75": 11.920534090909092,
+      "p90": 18.73532139213325
+    },
+    "error_ranges": {
+      "<5%": 0.396030381198051,
+      "5-10%": 0.2800945829750645,
+      "10-15%": 0.16100601891659502,
+      "15-20%": 0.07788764689022643,
+      ">20%": 0.08498137002006305
+    }
+  },
+  "feature_importance": [
+    {
+      "feature": "land_value",
+      "importance": 32171003740160.0
+    },
+    {
+      "feature": "sector_median",
+      "importance": 11175456669696.0
+    },
+    {
+      "feature": "view_quality",
+      "importance": 9690653130752.0
+    },
+    {
+      "feature": "prop_bath",
+      "importance": 8272453042176.0
+    },
+    {
+      "feature": "indoor_swimming_pool_cnt",
+      "importance": 4712201977856.0
+    },
+    {
+      "feature": "tennis_court_cnt",
+      "importance": 4422480429056.0
+    },
+    {
+      "feature": "famous_designer",
+      "importance": 4278488137728.0
+    },
+    {
+      "feature": "locality_post",
+      "importance": 3990094610432.0
+    },
+    {
+      "feature": "has_wharf",
+      "importance": 3836890054656.0
+    },
+    {
+      "feature": "land_size_type",
+      "importance": 3599562440704.0
+    },
+    {
+      "feature": "internal_area",
+      "importance": 3434561667072.0
+    },
+    {
+      "feature": "gym_area",
+      "importance": 3254440427520.0
+    },
+    {
+      "feature": "lift_cnt",
+      "importance": 3038292475904.0
+    },
+    {
+      "feature": "luxury_level_desc_score",
+      "importance": 2994879070208.0
+    },
+    {
+      "feature": "luxury_level_score",
+      "importance": 2962115526656.0
+    },
+    {
+      "feature": "region",
+      "importance": 2944341377024.0
+    },
+    {
+      "feature": "gym_name",
+      "importance": 2133714403328.0
+    },
+    {
+      "feature": "prop_x",
+      "importance": 1869588463616.0
+    },
+    {
+      "feature": "levels_cnt",
+      "importance": 1826986000384.0
+    },
+    {
+      "feature": "entertaining_space_cnt",
+      "importance": 1685446328320.0
+    }
+  ],
+  "comparison": {
+    "all_features": {
+      "rmse": 513566.6384543986,
+      "mae": 211595.54664436443,
+      "r2_score": 0.9058218025992825
+    },
+    "selected_features": {
+      "rmse": 513566.6384543986,
+      "mae": 211595.54664436443,
+      "r2_score": 0.9058218025992825
+    }
+  },
+  "performance": {
+    "rmse": 513566.6384543986,
+    "mae": 211595.54664436443,
+    "r2": 0.9058218025992825
+  },
+  "parameters": {
+    "objective": "reg:squarederror",
+    "base_score": null,
+    "booster": "gbtree",
+    "callbacks": null,
+    "colsample_bylevel": 0.8,
+    "colsample_bynode": null,
+    "colsample_bytree": 0.8,
+    "device": null,
+    "early_stopping_rounds": null,
+    "enable_categorical": false,
+    "eval_metric": null,
+    "feature_types": null,
+    "gamma": 0.1,
+    "grow_policy": null,
+    "importance_type": null,
+    "interaction_constraints": null,
+    "learning_rate": 0.05,
+    "max_bin": null,
+    "max_cat_threshold": null,
+    "max_cat_to_onehot": null,
+    "max_delta_step": null,
+    "max_depth": 6,
+    "max_leaves": null,
+    "min_child_weight": 3,
+    "missing": NaN,
+    "monotone_constraints": null,
+    "multi_strategy": null,
+    "n_estimators": 10000,
+    "n_jobs": -1,
+    "num_parallel_tree": null,
+    "random_state": 42,
+    "reg_alpha": 0.1,
+    "reg_lambda": 1.0,
+    "sampling_method": null,
+    "scale_pos_weight": null,
+    "subsample": 0.8,
+    "tree_method": "hist",
+    "validate_parameters": null,
+    "verbosity": null
+  }
+}

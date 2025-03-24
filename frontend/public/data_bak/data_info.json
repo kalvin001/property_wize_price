@@ -1,0 +1,11 @@
+{
+  "total_records": 69778,
+  "features_count": 113,
+  "target_column": "y_label",
+  "price_range": {
+    "min": 500.0,
+    "max": 42000000.0,
+    "mean": 2046848.5426352145,
+    "median": 1610000.0
+  }
+}

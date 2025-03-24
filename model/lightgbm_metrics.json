@@ -1,0 +1,149 @@
+{
+  "rmse": 497810.1573964527,
+  "mae": 211108.1548717311,
+  "r2_score": 0.9115120216157961,
+  "mse": 247814952807.08096,
+  "median_ae": 102871.07823267265,
+  "explained_variance": 0.9115229783626843,
+  "cv_rmse": 497810.1573964527,
+  "predictions": [
+    1499485.114426698,
+    687438.8074064645,
+    1831665.0291625701,
+    1791860.4664583136,
+    2997775.5459547555,
+    2158358.1226147525,
+    867157.6389121594,
+    2476466.7446528682,
+    1351041.7361926755,
+    1422239.0624084806
+  ],
+  "median_percentage_error": 6.635156389204043,
+  "mean_percentage_error": 9.803335944044752,
+  "error_distribution": {
+    "percentiles": {
+      "p10": 1.18257844007397,
+      "p25": 3.0093487010105706,
+      "p50": 6.635156389204043,
+      "p75": 11.93300796493833,
+      "p90": 18.836509125053265
+    },
+    "error_ranges": {
+      "<5%": 0.3970335339638865,
+      "5-10%": 0.2806678131269705,
+      "10-15%": 0.1562768701633706,
+      "15-20%": 0.08161364287761537,
+      ">20%": 0.08440813986815707
+    }
+  },
+  "feature_importance": [
+    {
+      "feature": "land_value",
+      "importance": 9.074668545470015e+17
+    },
+    {
+      "feature": "sector_median",
+      "importance": 4.472936144393613e+16
+    },
+    {
+      "feature": "internal_area",
+      "importance": 4.368735397672294e+16
+    },
+    {
+      "feature": "luxury_level_score",
+      "importance": 4.288943961056499e+16
+    },
+    {
+      "feature": "locality_post",
+      "importance": 3.230628637814157e+16
+    },
+    {
+      "feature": "prop_bath",
+      "importance": 2.816633896567373e+16
+    },
+    {
+      "feature": "prop_x",
+      "importance": 2.0479477802169344e+16
+    },
+    {
+      "feature": "land_size",
+      "importance": 1.6732511371135744e+16
+    },
+    {
+      "feature": "mainbuilding_bedrooms_area",
+      "importance": 1.3538536688973056e+16
+    },
+    {
+      "feature": "sold_contract_date",
+      "importance": 8874446425023232.0
+    },
+    {
+      "feature": "sector_code",
+      "importance": 8633633504180480.0
+    },
+    {
+      "feature": "luxury_level_desc_score",
+      "importance": 7306329071656576.0
+    },
+    {
+      "feature": "view_quality",
+      "importance": 7286428687087104.0
+    },
+    {
+      "feature": "garage_area",
+      "importance": 6838397619113088.0
+    },
+    {
+      "feature": "prop_y",
+      "importance": 6617335411003520.0
+    },
+    {
+      "feature": "each_bedroom_area",
+      "importance": 6340365746868224.0
+    },
+    {
+      "feature": "main_building_bedroom_avg_area",
+      "importance": 5944416777901312.0
+    },
+    {
+      "feature": "living_space_area",
+      "importance": 5439398060673664.0
+    },
+    {
+      "feature": "key_advantages",
+      "importance": 5056342379268864.0
+    },
+    {
+      "feature": "biggest_bedroom_area",
+      "importance": 3998801389527552.0
+    }
+  ],
+  "comparison": {
+    "all_features": {
+      "rmse": 497810.1573964527,
+      "mae": 211108.1548717311,
+      "r2_score": 0.9115120216157961
+    },
+    "selected_features": {
+      "rmse": 497810.1573964527,
+      "mae": 211108.1548717311,
+      "r2_score": 0.9115120216157961
+    }
+  },
+  "performance": {
+    "rmse": 497810.1573964527,
+    "mae": 211108.1548717311,
+    "r2": 0.9115120216157961
+  },
+  "parameters": {
+    "objective": "regression",
+    "metric": "rmse",
+    "boosting_type": "gbdt",
+    "num_leaves": 31,
+    "learning_rate": 0.05,
+    "feature_fraction": 0.9,
+    "bagging_fraction": 0.8,
+    "bagging_freq": 5,
+    "verbose": -1
+  }
+}

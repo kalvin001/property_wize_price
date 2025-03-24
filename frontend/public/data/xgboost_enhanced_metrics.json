@@ -1,0 +1,332 @@
+{
+  "rmse": 516462.74598067085,
+  "mae": 223773.0423473775,
+  "r2_score": 0.9047566273603862,
+  "mse": 266733767985.89496,
+  "median_ae": 113849.0,
+  "explained_variance": 0.9047671110163433,
+  "cv_rmse": 516462.74598067085,
+  "predictions": [
+    2048941.5,
+    759270.6875,
+    1703828.875,
+    1743581.0,
+    3084854.75,
+    2159061.0,
+    1213125.125,
+    2340152.75,
+    1283262.5,
+    1488722.5
+  ],
+  "median_percentage_error": 7.193647002622927,
+  "mean_percentage_error": 10.614917476132488,
+  "error_distribution": {
+    "percentiles": {
+      "p10": 1.3245753685657171,
+      "p25": 3.386418965354924,
+      "p50": 7.193647002622927,
+      "p75": 12.817790733466229,
+      "p90": 20.16152648510563
+    },
+    "error_ranges": {
+      "<5%": 0.3619231871596446,
+      "5-10%": 0.27901977644024073,
+      "10-15%": 0.16809974204643163,
+      "15-20%": 0.0882774433935225,
+      ">20%": 0.10267985096016051
+    }
+  },
+  "feature_importance": [
+    {
+      "feature": "land_value_decile",
+      "importance": 0.4854082465171814
+    },
+    {
+      "feature": "land_value_bracket",
+      "importance": 0.2199271321296692
+    },
+    {
+      "feature": "land_value_percentile",
+      "importance": 0.06081293150782585
+    },
+    {
+      "feature": "land_value_building_age_years_interaction",
+      "importance": 0.05737787485122681
+    },
+    {
+      "feature": "land_value_building_age_years_sqrt_interaction",
+      "importance": 0.019514447078108788
+    },
+    {
+      "feature": "land_value_internal_area_sqrt_interaction",
+      "importance": 0.015004993416368961
+    },
+    {
+      "feature": "land_value",
+      "importance": 0.011954964138567448
+    },
+    {
+      "feature": "land_value_log",
+      "importance": 0.009021294303238392
+    },
+    {
+      "feature": "multi_level_building",
+      "importance": 0.005587163381278515
+    },
+    {
+      "feature": "property_type_code",
+      "importance": 0.005227439571171999
+    },
+    {
+      "feature": "fine_grid_x",
+      "importance": 0.005219206679612398
+    },
+    {
+      "feature": "land_value_squared",
+      "importance": 0.004790111444890499
+    },
+    {
+      "feature": "land_value_internal_area_interaction",
+      "importance": 0.0046781813725829124
+    },
+    {
+      "feature": "land_value_prop_bed_sqrt_interaction",
+      "importance": 0.0037530441768467426
+    },
+    {
+      "feature": "luxury_level_score",
+      "importance": 0.0035171639174222946
+    },
+    {
+      "feature": "land_value_prop_bed_interaction",
+      "importance": 0.0030949462670832872
+    },
+    {
+      "feature": "luxury_level_desc_score",
+      "importance": 0.0025908914394676685
+    },
+    {
+      "feature": "land_value_to_building_age_years_ratio",
+      "importance": 0.0023391498252749443
+    },
+    {
+      "feature": "quality_score",
+      "importance": 0.0022852420806884766
+    },
+    {
+      "feature": "fine_grid_id",
+      "importance": 0.0021939631551504135
+    }
+  ],
+  "comparison": {
+    "all_features": {
+      "rmse": 516462.74598067085,
+      "mae": 223773.0423473775,
+      "r2_score": 0.9047566273603862
+    },
+    "selected_features": {
+      "rmse": 516462.74598067085,
+      "mae": 223773.0423473775,
+      "r2_score": 0.9047566273603862
+    }
+  },
+  "performance": {
+    "rmse": 516462.74598067085,
+    "mae": 223773.0423473775,
+    "r2": 0.9047566273603862
+  },
+  "parameters": {
+    "n_estimators": 300,
+    "learning_rate": 0.05,
+    "max_depth": 6,
+    "min_child_weight": 3,
+    "gamma": 0.1,
+    "subsample": 0.8,
+    "colsample_bytree": 0.8,
+    "reg_alpha": 0.1,
+    "reg_lambda": 1.0
+  },
+  "selected_features": [
+    "prop_y",
+    "prop_x",
+    "prop_carpark",
+    "prop_bed",
+    "prop_bath",
+    "locality_id",
+    "street_id",
+    "locality_name",
+    "sector_code",
+    "big_sector_code",
+    "locality_post",
+    "region",
+    "land_value",
+    "land_size",
+    "prop_zoning",
+    "sector_median",
+    "sold_contract_date",
+    "full_address_y",
+    "house_name",
+    "cul_de_sac",
+    "near_park",
+    "quietness",
+    "natural_light",
+    "view_type",
+    "view_quality",
+    "location_summary",
+    "luxury_level_desc_score",
+    "renovation_expansion",
+    "double_brick_wall",
+    "high_ceiling",
+    "building_age",
+    "construction_year_guess",
+    "current_tenure_aux",
+    "stca_development_potential",
+    "development_opportunity",
+    "key_advantages",
+    "internal_area",
+    "other_area",
+    "balcony_verandah_area",
+    "mainbuilding_bedrooms_area",
+    "biggest_entertainment_area",
+    "biggest_entertainment_name",
+    "gym_name",
+    "bath_plus_area",
+    "robe_plus_area",
+    "living_space_area",
+    "function_room_area",
+    "storage_area",
+    "kitchen_area",
+    "internal_workshop_area",
+    "balcony_area",
+    "covered_dining_area",
+    "verandah_area",
+    "garage_area",
+    "basement_area",
+    "bedroom_cnt",
+    "each_bedroom_area",
+    "ensuite_cnt",
+    "bath_cnt",
+    "wir_cnt",
+    "robe_cnt",
+    "living_space_cnt",
+    "pantry_cnt",
+    "study_home_office_cnt",
+    "kitchen_cnt",
+    "entertaining_space_cnt",
+    "levels_cnt",
+    "ground_level_bedroom_cnt",
+    "lower_ground_bedroom_cnt",
+    "small_bedroom_cnt",
+    "narrow_bedroom_cnt",
+    "outdoor_swimming_pool_cnt",
+    "connected_garage_cnt",
+    "separate_garage_cnt",
+    "biggest_bedroom_area",
+    "biggest_living_space_area",
+    "no_public_space_floor_cnt",
+    "no_public_space_floor_names",
+    "bedroom_without_bathroom_cnt",
+    "bedroom_without_bathroom_names",
+    "main_building_bedroom_avg_area",
+    "outdoor_dining_area",
+    "weather_board",
+    "luxury_level_images",
+    "luxury_level_images_score",
+    "luxury_level",
+    "luxury_level_score",
+    "building_year_mix",
+    "updated_date",
+    "building_coverage_ratio",
+    "log_internal_area",
+    "log_land_size",
+    "bed_bath_ratio",
+    "total_rooms",
+    "bed_bath_product",
+    "quality_score",
+    "quality_score_squared",
+    "building_age_years",
+    "age_area_interaction",
+    "building_era",
+    "location_convenience",
+    "functional_spaces",
+    "luxury_facilities",
+    "locality_land_mean",
+    "locality_land_median",
+    "locality_land_std",
+    "land_to_locality_mean_ratio",
+    "land_value_locality_deviation",
+    "locality_land_value_rank",
+    "locality_internal_area_rank",
+    "sector_value_per_sqm",
+    "sector_relative_value",
+    "space_per_bedroom",
+    "log_space_per_bedroom",
+    "property_composite_index",
+    "property_composite_index_squared",
+    "property_composite_index_sqrt",
+    "distance_from_center",
+    "sin_longitude",
+    "grid_x",
+    "grid_y",
+    "grid_id",
+    "grid_property_count",
+    "fine_grid_x",
+    "fine_grid_y",
+    "fine_grid_id",
+    "location_density",
+    "density_level",
+    "bed_bath_car_score",
+    "property_type_code",
+    "luxury_combo",
+    "family_suitability",
+    "land_utilization_ratio",
+    "land_efficiency_category",
+    "avg_room_area",
+    "log_avg_room_area",
+    "room_size_category",
+    "area_per_level",
+    "multi_level_building",
+    "height_category",
+    "land_value_internal_area_interaction",
+    "land_value_to_internal_area_ratio",
+    "land_value_internal_area_sqrt_interaction",
+    "land_value_prop_bed_interaction",
+    "land_value_to_prop_bed_ratio",
+    "land_value_prop_bed_sqrt_interaction",
+    "land_value_building_age_years_interaction",
+    "land_value_to_building_age_years_ratio",
+    "land_value_building_age_years_sqrt_interaction",
+    "internal_area_prop_bed_interaction",
+    "internal_area_to_prop_bed_ratio",
+    "internal_area_prop_bed_sqrt_interaction",
+    "internal_area_building_age_years_interaction",
+    "internal_area_building_age_years_sqrt_interaction",
+    "prop_bed_building_age_years_interaction",
+    "prop_bed_building_age_years_sqrt_interaction",
+    "top3_features_interaction",
+    "land_value_bracket",
+    "land_value_log",
+    "land_value_squared",
+    "value_per_area",
+    "log_value_per_area",
+    "land_value_percentile",
+    "land_value_decile",
+    "bedroom_density",
+    "building_efficiency",
+    "vertical_expansion_ratio",
+    "locality_luxury_level",
+    "relative_luxury",
+    "locality_avg_age",
+    "is_newer_than_locality",
+    "std_address_bert_0",
+    "std_address_bert_1",
+    "std_address_bert_2",
+    "std_address_bert_3",
+    "std_address_bert_4",
+    "std_address_bert_5",
+    "std_address_bert_6",
+    "std_address_bert_7",
+    "std_address_bert_8",
+    "std_address_bert_9"
+  ]
+}

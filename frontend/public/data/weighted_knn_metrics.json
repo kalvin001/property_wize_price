@@ -1,0 +1,148 @@
+{
+  "rmse": 996999.4141656061,
+  "mae": 465828.8757116187,
+  "r2_score": 0.6450668430542958,
+  "mse": 994007831846.5619,
+  "median_ae": 224812.2928202101,
+  "explained_variance": 0.6606594499014005,
+  "cv_rmse": 996999.4141656061,
+  "predictions": [
+    1937079.242370397,
+    988359.133327446,
+    1435851.872835836,
+    1313019.3857287348,
+    1883319.3380131575,
+    1385274.181135122,
+    1919572.954178709,
+    1959760.4399778743,
+    1166304.410417417,
+    1167685.6939971345
+  ],
+  "median_percentage_error": 14.470680872456633,
+  "mean_percentage_error": 19.949764394748254,
+  "error_distribution": {
+    "percentiles": {
+      "p10": 2.6078094324962082,
+      "p25": 6.586561624238129,
+      "p50": 14.470680872456633,
+      "p75": 26.65391913999424,
+      "p90": 40.2669722821535
+    },
+    "error_ranges": {
+      "<5%": 0.190957294353683,
+      "5-10%": 0.17196904557179707,
+      "10-15%": 0.15047291487532244,
+      "15-20%": 0.11701060475781026,
+      ">20%": 0.3695901404413872
+    }
+  },
+  "feature_importance": [
+    {
+      "feature": "prop_y",
+      "importance": 0.008771929824561403
+    },
+    {
+      "feature": "prop_x",
+      "importance": 0.008771929824561403
+    },
+    {
+      "feature": "prop_type",
+      "importance": 0.008771929824561403
+    },
+    {
+      "feature": "prop_carpark",
+      "importance": 0.008771929824561403
+    },
+    {
+      "feature": "prop_bed",
+      "importance": 0.008771929824561403
+    },
+    {
+      "feature": "prop_bath",
+      "importance": 0.008771929824561403
+    },
+    {
+      "feature": "locality_id",
+      "importance": 0.008771929824561403
+    },
+    {
+      "feature": "street_id",
+      "importance": 0.008771929824561403
+    },
+    {
+      "feature": "locality_name",
+      "importance": 0.008771929824561403
+    },
+    {
+      "feature": "sector_code",
+      "importance": 0.008771929824561403
+    },
+    {
+      "feature": "big_sector_code",
+      "importance": 0.008771929824561403
+    },
+    {
+      "feature": "locality_post",
+      "importance": 0.008771929824561403
+    },
+    {
+      "feature": "region",
+      "importance": 0.008771929824561403
+    },
+    {
+      "feature": "land_value",
+      "importance": 0.008771929824561403
+    },
+    {
+      "feature": "land_size",
+      "importance": 0.008771929824561403
+    },
+    {
+      "feature": "land_size_type",
+      "importance": 0.008771929824561403
+    },
+    {
+      "feature": "prop_zoning",
+      "importance": 0.008771929824561403
+    },
+    {
+      "feature": "sector_median",
+      "importance": 0.008771929824561403
+    },
+    {
+      "feature": "sold_contract_date",
+      "importance": 0.008771929824561403
+    },
+    {
+      "feature": "full_address_y",
+      "importance": 0.008771929824561403
+    }
+  ],
+  "comparison": {
+    "all_features": {
+      "rmse": 996999.4141656061,
+      "mae": 465828.8757116187,
+      "r2_score": 0.6450668430542958
+    },
+    "selected_features": {
+      "rmse": 996999.4141656061,
+      "mae": 465828.8757116187,
+      "r2_score": 0.6450668430542958
+    }
+  },
+  "performance": {
+    "rmse": 996999.4141656061,
+    "mae": 465828.8757116187,
+    "r2": 0.6450668430542958
+  },
+  "parameters": {
+    "algorithm": "brute",
+    "leaf_size": 30,
+    "metric": "precomputed",
+    "metric_params": null,
+    "n_jobs": -1,
+    "n_neighbors": 6,
+    "p": 2,
+    "weights": "distance"
+  }
+}

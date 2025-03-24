@@ -1,0 +1,98 @@
+{
+  "rmse": 290135.74723477673,
+  "mae": 57809.3208919403,
+  "r2": 0.969490849806955,
+  "mean_percentage_error": 2.892789489291158,
+  "median_percentage_error": 1.5253510028653294,
+  "error_distribution": {
+    "error_ranges": {
+      "<5%": 0.9233187086634798,
+      "5-10%": 0.05677427804335014,
+      "10-15%": 0.009167703490275686,
+      "15-20%": 0.00320869622159649,
+      ">20%": 0.007530613581297885
+    }
+  },
+  "feature_importance": [
+    {
+      "feature": "land_value",
+      "importance": 0.15713155269622803
+    },
+    {
+      "feature": "land_value_2022",
+      "importance": 0.09348339587450027
+    },
+    {
+      "feature": "land_value_ratio",
+      "importance": 0.08131460100412369
+    },
+    {
+      "feature": "land_size_type",
+      "importance": 0.06884542107582092
+    },
+    {
+      "feature": "locality_post",
+      "importance": 0.05691109970211983
+    },
+    {
+      "feature": "price_per_land_sqm",
+      "importance": 0.055956482887268066
+    },
+    {
+      "feature": "prop_bath",
+      "importance": 0.05079958587884903
+    },
+    {
+      "feature": "sector_median",
+      "importance": 0.04044775664806366
+    },
+    {
+      "feature": "prop_y",
+      "importance": 0.04008959233760834
+    },
+    {
+      "feature": "land_size",
+      "importance": 0.037685517221689224
+    },
+    {
+      "feature": "price_per_sqm",
+      "importance": 0.020683476701378822
+    },
+    {
+      "feature": "sector_code",
+      "importance": 0.020468413829803467
+    },
+    {
+      "feature": "luxury_level_desc_score",
+      "importance": 0.01815345510840416
+    },
+    {
+      "feature": "bedroom_cnt",
+      "importance": 0.01783619448542595
+    },
+    {
+      "feature": "prop_x",
+      "importance": 0.017538700252771378
+    },
+    {
+      "feature": "sec_med_July22",
+      "importance": 0.017499852925539017
+    },
+    {
+      "feature": "sec_med_July19",
+      "importance": 0.015669306740164757
+    },
+    {
+      "feature": "bedroom_size_category",
+      "importance": 0.01551626157015562
+    },
+    {
+      "feature": "ground_level_bedroom_cnt",
+      "importance": 0.01535184308886528
+    },
+    {
+      "feature": "land_utilization",
+      "importance": 0.007663496304303408
+    }
+  ]
+}

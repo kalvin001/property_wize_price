@@ -1,0 +1,99 @@
+{
+  "rmse": 1728997.3141053568,
+  "mae": 921136.0730868444,
+  "r2_score": -0.06744474347631835,
+  "mse": 2989431712183.538,
+  "median_ae": 585000.0,
+  "explained_variance": 0.0,
+  "cv_rmse": 1728997.3141053568,
+  "predictions": [
+    1615000.0,
+    1615000.0,
+    1615000.0,
+    1615000.0,
+    1615000.0,
+    1615000.0,
+    1615000.0,
+    1615000.0,
+    1615000.0,
+    1615000.0
+  ],
+  "median_percentage_error": 36.86440677966102,
+  "mean_percentage_error": 43.890501774234465,
+  "error_distribution": {
+    "percentiles": {
+      "p10": 7.308970099667775,
+      "p25": 18.02030456852792,
+      "p50": 36.86440677966102,
+      "p75": 61.5,
+      "p90": 85.63218390804597
+    },
+    "error_ranges": {
+      "<5%": 0.06520492977930639,
+      "5-10%": 0.07265692175408427,
+      "10-15%": 0.06513327601031814,
+      "15-20%": 0.07566638005159071,
+      ">20%": 0.7213384924047005
+    }
+  },
+  "feature_importance": [
+    {
+      "feature": "\u8ddd\u79bb",
+      "importance": 10.0
+    },
+    {
+      "feature": "\u65e5\u671f\u5dee",
+      "importance": 0.1
+    },
+    {
+      "feature": "\u5367\u5ba4\u6570\u5dee",
+      "importance": 5.0
+    },
+    {
+      "feature": "\u536b\u751f\u95f4\u5dee",
+      "importance": 2.0
+    },
+    {
+      "feature": "\u8f66\u4f4d\u5dee",
+      "importance": 0.5
+    },
+    {
+      "feature": "\u5730\u4ef7\u5dee",
+      "importance": 10.0
+    },
+    {
+      "feature": "\u623f\u5c4b\u7279\u5f81\u672a\u6807\u6ce8",
+      "importance": 10.0
+    },
+    {
+      "feature": "\u5360\u5730\u9762\u79ef\u5dee",
+      "importance": 10.0
+    }
+  ],
+  "comparison": {
+    "all_features": {
+      "rmse": 1728997.3141053568,
+      "mae": 921136.0730868444,
+      "r2_score": -0.06744474347631835
+    },
+    "selected_features": {
+      "rmse": 1728997.3141053568,
+      "mae": 921136.0730868444,
+      "r2_score": -0.06744474347631835
+    }
+  },
+  "performance": {
+    "rmse": 1728997.3141053568,
+    "mae": 921136.0730868444,
+    "r2": -0.06744474347631835
+  },
+  "parameters": {
+    "n_neighbors": 10,
+    "max_distance": 1.0,
+    "max_bed_diff": 2,
+    "max_days": 365,
+    "min_price_ratio": 0.7,
+    "max_price_ratio": 1.5,
+    "self_similarity_score": 25
+  }
+}

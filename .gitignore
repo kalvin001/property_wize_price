@@ -68,4 +68,3 @@ temp_backup/
 *.joblib
 *.h5
 *.bin
-*.json

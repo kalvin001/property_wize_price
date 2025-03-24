@@ -1,0 +1,155 @@
+{
+  "rmse": 1126321.5708383576,
+  "mae": 470618.2362738249,
+  "r2_score": 0.5470173491708965,
+  "mse": 1268600280935.7854,
+  "median_ae": 348477.75,
+  "explained_variance": 0.548669558613261,
+  "cv_rmse": 1126321.5708383576,
+  "predictions": [
+    2029794.625,
+    1365681.5,
+    1642164.0,
+    1605068.5,
+    2462074.0,
+    1859243.125,
+    1248002.0,
+    1779881.625,
+    1467216.75,
+    1449354.75
+  ],
+  "median_percentage_error": 20.15057982603816,
+  "mean_percentage_error": 27.621694839980798,
+  "error_distribution": {
+    "percentiles": {
+      "p10": 3.9135008920187793,
+      "p25": 9.817994728366553,
+      "p50": 20.15057982603816,
+      "p75": 35.15338493563014,
+      "p90": 55.64968377203395
+    },
+    "error_ranges": {
+      "<5%": 0.12546574949842362,
+      "5-10%": 0.12904843794783605,
+      "10-15%": 0.12811693895098883,
+      "15-20%": 0.11385783892232731,
+      ">20%": 0.5035110346804242
+    }
+  },
+  "feature_importance": [
+    {
+      "feature": "land_value",
+      "importance": 0.24018439587956714
+    },
+    {
+      "feature": "land_value_2022",
+      "importance": 0.15984871633501457
+    },
+    {
+      "feature": "sec_med_July20",
+      "importance": 0.08028581035255794
+    },
+    {
+      "feature": "sec_med_July18",
+      "importance": 0.04901532784054705
+    },
+    {
+      "feature": "sector_median",
+      "importance": 0.0446102893493212
+    },
+    {
+      "feature": "sec_med_July21",
+      "importance": 0.042899697817381906
+    },
+    {
+      "feature": "prop_x",
+      "importance": 0.04123437318701837
+    },
+    {
+      "feature": "prop_bath",
+      "importance": 0.03374426135480059
+    },
+    {
+      "feature": "view_quality",
+      "importance": 0.025826596026207075
+    },
+    {
+      "feature": "main_building_bedroom_avg_area",
+      "importance": 0.024794822180891848
+    },
+    {
+      "feature": "region",
+      "importance": 0.019903196089943943
+    },
+    {
+      "feature": "luxury_level_score",
+      "importance": 0.019246113248996437
+    },
+    {
+      "feature": "function_room_area",
+      "importance": 0.01829900290342685
+    },
+    {
+      "feature": "locality_post",
+      "importance": 0.016383782855781376
+    },
+    {
+      "feature": "outdoor_swimming_pool_cnt",
+      "importance": 0.014815747501437227
+    },
+    {
+      "feature": "small_bedroom_cnt",
+      "importance": 0.012549781270907692
+    },
+    {
+      "feature": "living_space_area",
+      "importance": 0.012497927477077148
+    },
+    {
+      "feature": "mainbuilding_bedrooms_area",
+      "importance": 0.012066361557310498
+    },
+    {
+      "feature": "ensuite_cnt",
+      "importance": 0.010987130645629553
+    },
+    {
+      "feature": "famous_designer",
+      "importance": 0.01098536106314933
+    }
+  ],
+  "comparison": {
+    "all_features": {
+      "rmse": 1126321.5708383576,
+      "mae": 470618.2362738249,
+      "r2_score": 0.5470173491708965
+    },
+    "selected_features": {
+      "rmse": 1126321.5708383576,
+      "mae": 470618.2362738249,
+      "r2_score": 0.5470173491708965
+    }
+  },
+  "performance": {
+    "rmse": 1126321.5708383576,
+    "mae": 470618.2362738249,
+    "r2": 0.5470173491708965
+  },
+  "parameters": {
+    "hidden_layers": [
+      128,
+      64,
+      32
+    ],
+    "dropout_rate": 0.3,
+    "learning_rate": 0.0005,
+    "batch_size": 32,
+    "num_epochs": 5,
+    "patience": 15
+  },
+  "feature_info": {
+    "total_features": 118,
+    "deep_features_used": false,
+    "deep_features_count": 0
+  }
+}

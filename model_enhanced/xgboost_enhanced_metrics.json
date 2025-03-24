@@ -1,0 +1,204 @@
+{
+  "rmse": 249277.75892583787,
+  "mae": 58713.35797873115,
+  "r2_score": 0.9778117102352977,
+  "mse": 62139401095.08814,
+  "median_ae": 24279.375,
+  "explained_variance": 0.9778127502598196,
+  "cv_rmse": 249277.75892583787,
+  "predictions": [
+    1689006.625,
+    694369.9375,
+    1881488.125,
+    1983156.75,
+    3012520.25,
+    2053958.625,
+    883011.25,
+    2346551.75,
+    1416100.125,
+    1352762.25
+  ],
+  "median_percentage_error": 1.5470451827401455,
+  "mean_percentage_error": 2.3724672277968626,
+  "error_distribution": {
+    "percentiles": {
+      "p10": 0.27930332056194124,
+      "p25": 0.7251246250043104,
+      "p50": 1.5470451827401455,
+      "p75": 2.7515137393094706,
+      "p90": 4.3240130509641865
+    },
+    "error_ranges": {
+      "<5%": 0.9281312697047864,
+      "5-10%": 0.05209229005445686,
+      "10-15%": 0.009314989968472341,
+      "15-20%": 0.003725995987388937,
+      ">20%": 0.006735454284895385
+    }
+  },
+  "feature_importance": [
+    {
+      "feature": "land_value",
+      "importance": 271174705610752.0
+    },
+    {
+      "feature": "postcode_mean_price",
+      "importance": 222369499054080.0
+    },
+    {
+      "feature": "price_per_sqm",
+      "importance": 113828134125568.0
+    },
+    {
+      "feature": "locality_post",
+      "importance": 100507284668416.0
+    },
+    {
+      "feature": "sector_median",
+      "importance": 87250138300416.0
+    },
+    {
+      "feature": "area_premium_index",
+      "importance": 81840786374656.0
+    },
+    {
+      "feature": "price_to_postcode_mean_ratio",
+      "importance": 55610599014400.0
+    },
+    {
+      "feature": "price_to_land_value_ratio",
+      "importance": 44042003939328.0
+    },
+    {
+      "feature": "land_size",
+      "importance": 37304265605120.0
+    },
+    {
+      "feature": "price_per_internal_sqm",
+      "importance": 31222390587392.0
+    },
+    {
+      "feature": "sector_code",
+      "importance": 22559540117504.0
+    },
+    {
+      "feature": "prop_bed",
+      "importance": 19919911518208.0
+    },
+    {
+      "feature": "property_composite_index",
+      "importance": 17850920075264.0
+    },
+    {
+      "feature": "postcode_price_std",
+      "importance": 13220500733952.0
+    },
+    {
+      "feature": "prop_x",
+      "importance": 12612263739392.0
+    },
+    {
+      "feature": "internal_area",
+      "importance": 11893243641856.0
+    },
+    {
+      "feature": "luxury_level_desc_score",
+      "importance": 11471376351232.0
+    },
+    {
+      "feature": "postcode_median_price",
+      "importance": 11242728062976.0
+    },
+    {
+      "feature": "connected_garage_cnt",
+      "importance": 6451042975744.0
+    },
+    {
+      "feature": "view_type",
+      "importance": 6095353937920.0
+    }
+  ],
+  "comparison": {
+    "all_features": {
+      "rmse": 249277.75892583787,
+      "mae": 58713.35797873115,
+      "r2_score": 0.9778117102352977
+    },
+    "selected_features": {
+      "rmse": 249277.75892583787,
+      "mae": 58713.35797873115,
+      "r2_score": 0.9778117102352977
+    }
+  },
+  "performance": {
+    "rmse": 249277.75892583787,
+    "mae": 58713.35797873115,
+    "r2": 0.9778117102352977
+  },
+  "parameters": {
+    "objective": "reg:squarederror",
+    "base_score": null,
+    "booster": null,
+    "callbacks": null,
+    "colsample_bylevel": null,
+    "colsample_bynode": null,
+    "colsample_bytree": 0.8,
+    "device": null,
+    "early_stopping_rounds": null,
+    "enable_categorical": false,
+    "eval_metric": null,
+    "feature_types": null,
+    "gamma": null,
+    "grow_policy": null,
+    "importance_type": null,
+    "interaction_constraints": null,
+    "learning_rate": 0.1,
+    "max_bin": null,
+    "max_cat_threshold": null,
+    "max_cat_to_onehot": null,
+    "max_delta_step": null,
+    "max_depth": 5,
+    "max_leaves": null,
+    "min_child_weight": null,
+    "missing": NaN,
+    "monotone_constraints": null,
+    "multi_strategy": null,
+    "n_estimators": 300,
+    "n_jobs": -1,
+    "num_parallel_tree": null,
+    "random_state": 42,
+    "reg_alpha": 0,
+    "reg_lambda": 1,
+    "sampling_method": null,
+    "scale_pos_weight": null,
+    "subsample": 0.8,
+    "tree_method": null,
+    "validate_parameters": null,
+    "verbosity": null
+  },
+  "selected_features": [
+    "prop_x",
+    "prop_bed",
+    "sector_code",
+    "locality_post",
+    "region",
+    "land_value",
+    "land_size",
+    "sector_median",
+    "view_type",
+    "luxury_level_desc_score",
+    "internal_area",
+    "entertaining_space_cnt",
+    "connected_garage_cnt",
+    "bedroom_without_bathroom_names",
+    "price_to_land_value_ratio",
+    "price_per_sqm",
+    "price_per_internal_sqm",
+    "postcode_mean_price",
+    "postcode_median_price",
+    "postcode_price_std",
+    "price_to_postcode_mean_ratio",
+    "area_premium_index",
+    "property_composite_index"
+  ]
+}

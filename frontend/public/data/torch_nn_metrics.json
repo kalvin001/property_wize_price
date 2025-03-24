@@ -1,0 +1,150 @@
+{
+  "rmse": 2015760.7056110802,
+  "mae": 1544700.8704236753,
+  "r2_score": -0.4508907625370169,
+  "mse": 4063291222285.68,
+  "median_ae": 1195468.921875,
+  "explained_variance": 0.40042028851363043,
+  "cv_rmse": 2015760.7056110802,
+  "predictions": [
+    489942.0,
+    131770.65625,
+    466981.09375,
+    435093.40625,
+    677257.375,
+    546529.4375,
+    248390.1875,
+    596635.625,
+    351581.90625,
+    373078.28125
+  ],
+  "median_percentage_error": 75.03026239292916,
+  "mean_percentage_error": 74.84863638929843,
+  "error_distribution": {
+    "percentiles": {
+      "p10": 70.73618144942805,
+      "p25": 72.9268395466901,
+      "p50": 75.03026239292916,
+      "p75": 76.95144461114364,
+      "p90": 78.8292570565498
+    },
+    "error_ranges": {
+      "<5%": 7.165376898824878e-05,
+      "5-10%": 0.00014330753797649757,
+      "10-15%": 0.0004299226139294927,
+      "15-20%": 7.165376898824878e-05,
+      ">20%": 0.9992834623101176
+    }
+  },
+  "feature_importance": [
+    {
+      "feature": "land_value",
+      "importance": 0.4176560275049273
+    },
+    {
+      "feature": "prop_x",
+      "importance": 0.08215123486729714
+    },
+    {
+      "feature": "sector_median",
+      "importance": 0.06372064576810119
+    },
+    {
+      "feature": "locality_post",
+      "importance": 0.026956404965887915
+    },
+    {
+      "feature": "region",
+      "importance": 0.026891739845688198
+    },
+    {
+      "feature": "mainbuilding_bedrooms_area",
+      "importance": 0.02633834462149513
+    },
+    {
+      "feature": "prop_bath",
+      "importance": 0.02633426920387616
+    },
+    {
+      "feature": "internal_area",
+      "importance": 0.02192064216294499
+    },
+    {
+      "feature": "view_quality",
+      "importance": 0.021357954509312337
+    },
+    {
+      "feature": "other_area",
+      "importance": 0.019297746121600026
+    },
+    {
+      "feature": "luxury_level_desc_score",
+      "importance": 0.01854700704930326
+    },
+    {
+      "feature": "sector_code",
+      "importance": 0.017098866708107455
+    },
+    {
+      "feature": "land_size",
+      "importance": 0.0165149061653558
+    },
+    {
+      "feature": "outdoor_swimming_pool_cnt",
+      "importance": 0.010838745884425896
+    },
+    {
+      "feature": "main_building_bedroom_avg_area",
+      "importance": 0.009878788163892762
+    },
+    {
+      "feature": "ensuite_cnt",
+      "importance": 0.009729086082644703
+    },
+    {
+      "feature": "luxury_level_score",
+      "importance": 0.009625917351844078
+    },
+    {
+      "feature": "ground_level_bedroom_cnt",
+      "importance": 0.009500978876322242
+    },
+    {
+      "feature": "garage_area",
+      "importance": 0.009443999786846334
+    },
+    {
+      "feature": "development_opportunity",
+      "importance": 0.009358239383638316
+    }
+  ],
+  "comparison": {
+    "all_features": {
+      "rmse": 2015760.7056110802,
+      "mae": 1544700.8704236753,
+      "r2_score": -0.4508907625370169
+    },
+    "selected_features": {
+      "rmse": 2015760.7056110802,
+      "mae": 1544700.8704236753,
+      "r2_score": -0.4508907625370169
+    }
+  },
+  "performance": {
+    "rmse": 2015760.7056110802,
+    "mae": 1544700.8704236753,
+    "r2": -0.4508907625370169
+  },
+  "parameters": {
+    "hidden_layers": [
+      256,
+      128,
+      64
+    ],
+    "dropout_rate": 0.2,
+    "learning_rate": 0.001,
+    "batch_size": 64,
+    "num_epochs": 100,
+    "patience": 10
+  }
+}
